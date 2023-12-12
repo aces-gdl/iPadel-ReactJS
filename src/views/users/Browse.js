@@ -15,6 +15,9 @@ import { IconEdit,IconEye } from '@tabler/icons';
 import SubCard from 'ui-component/cards/SubCard';
 import Update from './Update';
 import { useState } from 'react';
+import Add from './Add';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 
 const columns = [
@@ -35,6 +38,9 @@ export default function Browser() {
     const [user,setUser]= React.useState(null);
     const [permissions, setPermissions]= useState([]);
     const [categories, setCategories]= useState([]);
+    const [viewOpen, setViewOpen] = React.useState(false);
+    const [addOpen, setAddOpen] = React.useState(false);
+    const [updateOpen, setUpdateOpen] = React.useState(false);
 
 
 
@@ -80,6 +86,10 @@ export default function Browser() {
     const openView = (value) =>{
         console.log ("View " ,value)
     }
+    const openAdd = (value) =>{
+        console.log ("View " ,value)
+    }
+    
     const openUpdate = (value) =>{
         console.log ("Update " ,value)
         setUser(value);
@@ -141,11 +151,12 @@ export default function Browser() {
     
 
     return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
             <AppBar position="static">
                 <Toolbar>
                     <Typography variant='h3' sx={{ flexGrow: 1 }}>Listado de Usuarios</Typography>
-                    <Button color="inherit">Cargar Clubs</Button>
+                    <Button color="inherit" variant={'contained'} onClick={() =>setAddOpen(true)}>Cargar Clubs</Button>
                 </Toolbar>
             </AppBar>
             <MainCard >
@@ -195,10 +206,11 @@ export default function Browser() {
                     />
                 </Paper>
             </MainCard>
-            <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
-             <Update data={user} categories={categories} />
+            <Dialog open={addOpen} onClose={() => setAddOpen(false)}>
+             <Add  />
             </Dialog>
         </Paper>
+        </LocalizationProvider>
     );
 }
 
