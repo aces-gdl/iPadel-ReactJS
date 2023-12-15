@@ -18,9 +18,11 @@ const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const ClubsBrowse = Loadable(lazy(() => import('views/clubs/Browse')));
 const DrawGroups = Loadable(lazy(() => import('views/groups/DrawGroups')));
-const UsersBrowse = Loadable(lazy(() => import('views/users/Browse')));
-const TournamentDashboard = Loadable(lazy(() => import('views/tournaments/Dashboard')))
+const Users = Loadable(lazy(() => import('views/users')));
+const CreateTournament = Loadable(lazy(() => import('views/tournaments/CreateTournament')))
 const TournamentEnrolledTeams = Loadable(lazy(() => import('views/teamsEnrolled/BrowseTeams')))
+const SimulateSubcribers = Loadable(lazy(() => import('views/tournaments/SimulateSubcribers')))
+const CreateGroups = Loadable(lazy(() => import('views/tournaments/CreateGroups')))
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -99,17 +101,27 @@ const MainRoutes = {
             element: <DrawGroups />
         },
         {
-            path: 'views/users/Browse',
-            element: <UsersBrowse />
+            path: 'views/users',
+            element: <Users />
         },
         {
-            path: 'views/tournament/dashboard',
-            element: <TournamentDashboard />
+            path: 'views/tournament/createtournament',
+            element: <CreateTournament />
         },
         {
             path: 'views/tournament/teamsenrolled',
             element: <TournamentEnrolledTeams />
         },
+        {
+            path: 'views/tournament/simulatesubscribers',
+            element: <SimulateSubcribers />
+        },
+        {
+            path: 'views/tournament/creategroups',
+            element: <CreateGroups />
+        },
+        
+        
     ]
 };
 

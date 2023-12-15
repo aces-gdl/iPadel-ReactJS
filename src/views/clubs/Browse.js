@@ -99,9 +99,9 @@ export default function Browser() {
                             </TableHead>
                             <TableBody>
                                 {rows
-                                    .map((row) => {
+                                    .map((row, index) => {
                                         return (
-                                            <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                                            <TableRow hover role="checkbox" tabIndex={-1} key={`r-${index}`}>
                                                 {columns.map((column) => {
                                                     const value = row[column.id];
                                                     return (

@@ -1,8 +1,8 @@
 // assets
-import { IconBrandChrome, IconBeach,IconUser, IconUsers,IconTournament,IconUserPlus, IconCalendarStats } from '@tabler/icons';
+import { IconBrandChrome, IconBeach,IconUser, IconUsers,IconTournament,IconUserPlus, IconCalendarStats, IconAffiliate } from '@tabler/icons';
 
 // constant
-const icons = { IconBrandChrome, IconBeach, IconUser, IconUsers,IconTournament,IconUserPlus,IconCalendarStats };
+const icons = { IconBrandChrome, IconBeach, IconUser, IconUsers,IconTournament,IconUserPlus,IconCalendarStats,IconAffiliate };
 // ==============================|| MENU Adminstracion ||============================== //
 
 const tournamentAdministration = {
@@ -19,10 +19,28 @@ const tournamentAdministration = {
             breadcrums: true
         },
         {       
+            id: 'SimulateSubcribers',
+            title: 'Simular Inscripciones',
+            type: 'item',
+            url: '/views/tournament/simulatesubscribers',
+            icon: icons.IconAffiliate,
+            breadcrums: true
+        },
+    
+        {       
+            id: 'Crear Grupos',
+            title: 'Crear Grupos',
+            type: 'item',
+            url: '/views/tournament/creategroups',
+            icon: icons.IconUsers,
+            breadcrums: true
+        },
+        
+        {       
             id: 'Crear Torneo',
             title: 'Crea Torneo',
             type: 'item',
-            url: '/views/tournament/dashboard',
+            url: '/views/tournament/createtournament',
             icon: icons.IconTournament,
             breadcrums: true
         },

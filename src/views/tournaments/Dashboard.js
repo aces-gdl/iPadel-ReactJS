@@ -11,6 +11,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import CreateTournament from './CreateTournament';
 import { useNavigate } from "react-router-dom";
 import TimeSlots from './TimeSlots';
+import SelectCategories from 'components/SelectCategories';
+import SimulateSubcribers from './SimulateSubcribers';
+import CreateGroups from './CreateGroups';
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -44,22 +47,7 @@ const Dashboard = () => {
     const [clubs, setClubs] = React.useState([]);
 
 
-    const SimularInscipciones = () => {
 
-        let payload = {
-            "CategoryID": values.category,
-            "TournamentID": values.tournament,
-            "UserCount": values.userCount
-
-        }
-        axios.post('/v1/tournament/simulateenrollment', payload)
-            .then((response) => {
-                alert.success("Inscripcion completa")
-            })
-            .catch((error) => {
-                alert.error("Error durante la inscripcione")
-            })
-    }
 
     const CrearGrupos = () => {
         let payload = {
@@ -140,161 +128,22 @@ const Dashboard = () => {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <MainCard title="TORNEOS">
                 <Paper>
-                    <Grid container xs={12} spacing={2}  >
-                        <Grid item xs={6} >
-                            <Item>
-                                <SubCard title="Carga de Usuarios">
-                                    <Grid container xs={12} spacing={2} >
-                                        <Grid item xs={12}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="Permission">Permisos</InputLabel>
-                                                <Select
-                                                    labelId="{PermissionL}"
-                                                    id="PersmissionL"
-                                                    name="permission"
-                                                    value={values.permission}
-                                                    label="Permisos"
-                                                    onChange={handleUpdate}
-                                                >
-                                                    {permissions.map((row) =>
-                                                        <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                                    )}
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item xs={12}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="Category">Categoria</InputLabel>
-                                                <Select
-                                                    labelId="Categoryl"
-                                                    id="CategoryL"
-                                                    name="category"
-                                                    value={values.category}
-                                                    label="Category"
-                                                    onChange={handleUpdate}
-                                                >
-                                                    {categories.map((row) =>
-                                                        <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                                    )}
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item xs={12}>
+                    <Grid container spacing={2}  >
 
-                                            <Input type="file" onChange={onFileChange} />
-                                        </Grid>
-                                        <Grid item xs={12}>
-                                            <Button onClick={onFileUpload}>
-                                                Crear Usuarios!
-                                            </Button>
-                                        </Grid>
-                                    </Grid>
-                                </SubCard>
-                            </Item>
-                        </Grid>
                         <Grid item xs={6}>
-                            {clubs && clubs.length > 0 &&
-                                <CreateTournament clubs={clubs} />
-                            }
+                            <CreateTournament clubs={clubs} />
                         </Grid>
+
                         <Grid item xs={6}>
-                            <Item>
-                                <SubCard title="Simular inscripciones" >
-
-                                    <FormControl fullWidth>
-                                        <InputLabel id="Tournament">Torneo</InputLabel>
-                                        <Select
-                                            labelId="Tournamentl"
-                                            id="TournamentL"
-                                            name="tournament"
-                                            value={values.tournament}
-                                            label="Torneo"
-                                            onChange={handleUpdate}
-                                        >
-                                            {tournaments.map((row) =>
-                                                <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                            )}
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl fullWidth>
-                                        <InputLabel id="Category">Categoria</InputLabel>
-                                        <Select
-                                            labelId="Categoryl"
-                                            id="CategoryL"
-                                            name="category"
-                                            value={values.category}
-                                            label="Category"
-                                            onChange={handleUpdate}
-                                        >
-                                            {categories.map((row) =>
-                                                <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                            )}
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl fullWidth>
-                                        <TextField
-
-                                            fullWidth
-                                            id="UserCount"
-                                            label="Cantidad de usuarios"
-                                            name="userCount"
-                                            value={values.UserCount}
-                                            onChange={handleUpdate}
-
-                                        />
-                                    </FormControl>
-
-                                    <Button onClick={SimularInscipciones}>1.- Simular inscripciones</Button>
-                                </SubCard>
-
-                            </Item>
+                            <CreateGroups />
                         </Grid>
-                        <Grid item xs={6}>
-
-                            <Item>
-                                <SubCard title="Crear Grupos" >
-                                    <FormControl fullWidth>
-                                        <InputLabel id="Tournament">Torneo</InputLabel>
-                                        <Select
-                                            labelId="Tournamentl"
-                                            id="TournamentL"
-                                            name="tournament"
-                                            value={values.tournament}
-                                            label="Torneo"
-                                            onChange={handleUpdate}
-                                        >
-                                            {tournaments.map((row) =>
-                                                <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                            )}
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl fullWidth>
-                                        <InputLabel id="Category">Categoria</InputLabel>
-                                        <Select
-                                            labelId="Categoryl"
-                                            id="CategoryL"
-                                            name="category"
-                                            value={values.category}
-                                            label="Category"
-                                            onChange={handleUpdate}
-                                        >
-                                            {categories.map((row) =>
-                                                <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                            )}
-                                        </Select>
-                                    </FormControl>
-
-                                    <Button onClick={CrearGrupos}>2.- Crear Grupos</Button>
-                                </SubCard>
-
-                            </Item>
-                        </Grid>
-                        <Grid item xs={12} >
+                        {/*                       <Grid item xs={12} >
                             <Item>
                                 <TimeSlots categories={categories} />
                             </Item>
                         </Grid>
 
+    */}
                     </Grid>
 
                 </Paper>

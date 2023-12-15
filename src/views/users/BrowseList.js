@@ -1,7 +1,7 @@
 import * as React from 'react';
 import axios from 'axios';
 import { useEffect } from 'react';
-import { Box, Button, Dialog, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Typography } from '@mui/material';
+import { Box, Button, Dialog, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAlert } from 'react-alert';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -14,9 +14,9 @@ import { IconCircle, IconPencil } from '@tabler/icons';
 import Add from './Add';
 import View from './View';
 import SelectCategories from 'components/SelectCategories';
-import SelectSchedules from 'components/SelectSchedules';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import Update from './Update';
+import SelectPermissions from 'components/SelectPermissions';
 
 
 export default function BrowserList() {
@@ -24,49 +24,41 @@ export default function BrowserList() {
     const alert = useAlert();
 
     const [rows, setRows] = React.useState([]);
-    const [categories, setCategories] = React.useState([]);
-    const [schedules, setSchedules] = React.useState([]);
     const [currentRow, setCurrenRow] = React.useState({});
     const [viewOpen, setViewOpen] = React.useState(false);
     const [addOpen, setAddOpen] = React.useState(false);
     const [updateOpen, setUpdateOpen] = React.useState(false);
     const [values, setValues] = useState({
         CategoryID: '',
-        ScheduleID: ''
+        SearchString: ''
     });
 
-    const loadComboData = () => {
-        let myPromises = [
-            axios.get('/v1/catalogs/category?page=-1'),
-            axios.get('/v1/catalogs/schedule?page=-1'),
+    const loadData = (newPage) => {
+        let myURL = '/v1/catalogs/users?page=-1';
+        if (values.CategoryID && values.CategoryID.length > 0) {
+            myURL += `&CategoryID=${values.CategoryID}`
+        }
 
-        ]
-        Promise.all(myPromises)
-            .then((responses) => {
-                setCategories(responses[0].data.data);
-                setSchedules(responses[1].data.data);
-            })
-            .catch((err) => {
-                console.log("Error : ", err)
-            })
-    }
-    const loadMainData = () => {
-
-        axios.get('/v1/catalogs/users?limit=-1')
+        if (values.PermissionID && values.PermissionID.length > 0) {
+            myURL += `&PermissionID=${values.PermissionID}`
+        }
+        if (values.SearchString && values.SearchString.length > 0) {
+            myURL += `&SearchString=${values.SearchString}`
+        }
+        axios.get(myURL)
             .then((response) => {
                 setRows(response.data.data)
             })
             .catch((error) => {
+                console.log("Error:", error)
                 alert.error('Error leyendo usuarios')
                 if (error.response.status === 401) {
                     navigate('/pages/login/login3')
                 }
             })
     }
-
     useEffect(() => {
-        loadMainData(1);
-        loadComboData();
+        loadData();
     }, [])
 
     const formatDate = (myDate) => {
@@ -101,7 +93,7 @@ export default function BrowserList() {
     const handleClickOnSearch = () => {
         let myURL = "/v1/catalogs/users?a=1";
         myURL += values.CategoryID && values.CategoryID.length > 0 ? `&CategoryID=${values.CategoryID}` : '';
-        myURL += values.ScheduleID && values.ScheduleID.length > 0 ? `&ScheduleID=${values.ScheduleID}` : '';
+        myURL += values.SearchString && values.SearchString.length > 0 ? `&SearchString=${values.SearchString}` : '';
 
         axios.get(myURL)
             .then((response) => {
@@ -119,55 +111,44 @@ export default function BrowserList() {
         return (
             <Grid item sm={12} md={6} lg={4} key={row.ID} >
                 <Paper elevation={2} >
-                    <Box paddingX={2} paddingTop={2} paddingBottom={1} display={'flex'} alignItems={'center'}>
+                    <Box paddingX={2} paddingTop={2} paddingBottom={1} display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
                         <LoadImageFromURL id={row.ID} imageid={row.HasPicture >= 1 ? row.ID : '1'} imagename={row.Name} height='100px' thumbnail />
                         <Typography variant='h4' marginLeft={1.5} component={'h2'}> {row.Name} </Typography>
+                        <Box><Typography variant='h4'>250 Pts</Typography></Box>
                     </Box>
                     <Divider variant={'fullWidth'} />
 
                     <Box display={'flex'} alignItems='center' justifyContent='space-between' paddingTop={2} >
 
                         <Box paddingX={2} display={'flex'} alignItems='center'  >
-                            <Typography variant='subtitle1' component='p'>Alumno desde :</Typography>
-                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>02/10/2022</Typography>
+                            <Typography variant='subtitle1' component='p'>Miembro desde :</Typography>
+                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{formatDate(row.MemberSince)}</Typography>
 
                         </Box>
 
-                        <Box paddingX={2} display={'flex'} alignItems='center'  >
-                            <Typography variant='subtitle1' component='p'>Cinta :</Typography>
-                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{row.CategoryDescription}</Typography>
-
-                        </Box>
-                    </Box>
-                    <Box display={'flex'} alignItems='center' justifyContent='space-between' >
                         <Box paddingX={2} display={'flex'} alignItems='center'  >
 
                             <Typography variant='subtitle1' component='p'>Nacio el :</Typography>
                             <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{formatDate(row.Birthday)}</Typography>
 
                         </Box>
-                        <Box paddingX={2} display={'flex'} alignItems='center'  >
 
-                            <Typography variant='subtitle1' component='p'>Seleccion:</Typography>
-                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>CODE</Typography>
-
-                        </Box>
                     </Box>
-                    <Box display={'flex'} alignItems='center' justifyContent='space-between' paddingBottom={3}>
+                    <Box display={'flex'} alignItems='center' justifyContent='space-between' paddingBottom={1}>
                         <Box paddingX={2} display={'flex'} alignItems='center'  >
-
-                            <Typography variant='subtitle1' component='p'>Responsable :</Typography>
-                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{row.ContactName ? row.ContactName : 'N/A'}</Typography>
+                            <Typography variant='subtitle1' component='p'>Categoria :</Typography>
+                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{row.CategoryDescription}</Typography>
 
                         </Box>
                         <Box paddingX={2} display={'flex'} alignItems='center'  >
 
                             <Typography variant='subtitle1' component='p'>Telefono :</Typography>
-                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{row.ContactPhone}</Typography>
+                            <Typography variant='subtitle2' component='p' paddingLeft={0.5}>{row.Phone}</Typography>
 
                         </Box>
 
                     </Box>
+                   
                     <Box display={'flex'} justifyContent={'end'}>
                         <Button variant={'contained'} onClick={() => openUpdate(row)}><IconPencil size={'20'} /></Button>
                     </Box>
@@ -182,11 +163,18 @@ export default function BrowserList() {
             </Box>
             <Box display={'flex'} justifyContent={'space-between'} paddingBottom={2}>
                 <Grid container spacing={2}>
-                    <Grid item xs={12} md={5} >
-                        <SelectCategories name='CategoryID' value={values.CategoryID} handleupdate={handleUpdate} />
+                    <Grid item xs={12} lg={5} >
+                        <TextField
+                            size='small'
+                            fullWidth
+                            label='Buscar'
+                            name='SearchString'
+                            value={values.SearchString}
+                            onChange={handleUpdate}
+                        />
                     </Grid>
-                    <Grid item xs={12} md={5} >
-                        <SelectSchedules name='ScheduleID' value={values.ScheduleID} handleupdate={handleUpdate} />
+                    <Grid item xs={12} lg={5} >
+                        <SelectCategories name='CategoryID' value={values.CategoryID} handleupdate={handleUpdate} />
                     </Grid>
                     <Grid item xs={12} md={2}>
                         <Box display={'flex'} justifyContent={'space-between'}>
@@ -204,7 +192,13 @@ export default function BrowserList() {
                         rows.map((row) => RenderCard(row))
                     )}
                     {rows && rows.length === 0 && (
-                        <>Sin resultados ...</>
+
+                        <Grid item xs={12}>
+                            <Box justifyContent={'center'} display={'flex'}>
+                                <Typography variant='h2'>Sin Resultados...</Typography>
+                            </Box>
+                        </Grid>
+
                     )}
                 </Grid>
             </PerfectScrollbar >

@@ -4,22 +4,25 @@ import axios from 'axios'
 import LoadImageFromURL from 'components/LoadImageFromURL'
 import SelectCategories from 'components/SelectCategories'
 import SelectPermissions from 'components/SelectPermissions'
-import SelectSchedules from 'components/SelectSchedules'
 import React, { useEffect, useMemo, useState } from 'react'
+import { useAlert } from 'react-alert'
+import { useNavigate } from 'react-router'
 
 const Add = (props) => {
+    const navigate = useNavigate();
+    const alert = useAlert();
     const { handleClose } = props
     const [values, setValues] = useState({
         CategoryID: '',
         GivenName: '',
         FamilyName: '',
         Email: '',
-        ScheduleID: '',
+        Phone:'',
         PermissionID: '',
         Observations: '',
         Birthday: null,
         MemberSince: null,
-        MyImage:''
+        myImage: ''
 
     });
     const [myImage, setMyImage] = useState('');
@@ -38,7 +41,7 @@ const Add = (props) => {
     };
 
 
-    
+
     const createUser = () => {
         const payload = {
             'Email': values.Email,
@@ -51,9 +54,7 @@ const Add = (props) => {
             'CategoryID': values.CategoryID,
             'Ranking': values.Ranking
         }
-        if (values.myImage.length > 0) {
-            payload.HasPicture = 1;
-        }
+        payload.HasPicture = values.myImage ? 1 : 0;
         axios.post('/v1/catalogs/users', payload)
             .then((response) => {
 
@@ -61,8 +62,11 @@ const Add = (props) => {
                     imagePOST(response.data.ID)
                 }
             })
-            .catch((err) => {
+            .catch((error) => {
                 console.log('Error al crear usuario')
+                if (error.response.status === 401) {
+                    navigate('/pages/login/login3')
+                }
             })
 
         //    handleClose();
@@ -90,14 +94,13 @@ const Add = (props) => {
 
     return (
         <div>
-            <DialogTitle align='center'  ><Typography  sx={{ backgroundColor: 'lightgray' }}>Datos del atleta</Typography></DialogTitle>
+            <DialogTitle align='center'  ><Typography sx={{ backgroundColor: 'lightgray' }}>Datos del atleta</Typography></DialogTitle>
             <DialogContent >
-                <Grid container spacing={2} >
+                <Grid container spacing={2} paddingTop={1} >
                     <Grid item xs={12} md={6}>
                         <TextField
                             size='small'
                             fullWidth
-                            style={{ marginTop: '10px' }}
                             label='Nombre(s)'
                             name='GivenName'
                             value={values.GivenName}
@@ -107,7 +110,6 @@ const Add = (props) => {
                     <Grid item xs={12} md={6}>
                         <TextField
                             size='small'
-                            style={{ marginTop: '10px' }}
                             fullWidth
                             label='Apellido(s)'
                             name='FamilyName'
@@ -115,25 +117,24 @@ const Add = (props) => {
                             onChange={handleUpdate}
                         />
                     </Grid>
+
                     <Grid item xs={12} md={6}>
                         <TextField
                             size='small'
                             fullWidth
-                            style={{ marginTop: '10px' }}
-                            label='Contacto'
-                            name='ContactName'
-                            value={values.ContactName}
+                            label='Telefono'
+                            name='Phone'
+                            value={values.Phone}
                             onChange={handleUpdate}
                         />
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <TextField
-                            size='small'
-                            style={{ marginTop: '10px' }}
                             fullWidth
-                            label='Telefono'
-                            name='Phone'
-                            value={values.Phone}
+                            size='small'
+                            label='Correo electronico'
+                            name='Email'
+                            value={values.Email}
                             onChange={handleUpdate}
                         />
                     </Grid>
@@ -144,8 +145,7 @@ const Add = (props) => {
                         <SelectPermissions name='PermissionID' value={values.PermissionID} handleupdate={handleUpdate} />
                     </Grid>
                     <Grid item xs={12} md={6}>
-
-                        <FormControl size='small' fullWidth>
+                        <FormControl size={'small'} fullWidth>
                             <DatePicker
                                 label="Fecha de Ingreso"
                                 name="MemberSince"
@@ -165,17 +165,7 @@ const Add = (props) => {
                             />
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            fullWidth
-                            size='small'
-                            style={{ marginTop: '10px' }}
-                            label='Correo electronico'
-                            name='Email'
-                            value={values.Email}
-                            onChange={handleUpdate}
-                        />
-                    </Grid>
+
                     <Grid item xs={12} alignItems={'center'}>
                         <LoadImageFromURL
                             loadimage

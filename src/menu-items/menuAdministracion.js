@@ -22,7 +22,7 @@ const menuAdministracion = {
             id: 'BrowseUsers',
             title: 'Usuarios',
             type: 'item',
-            url: '/views/users/browse',
+            url: '/views/users',
             icon: icons.IconUser,
             breadcrums: true
         }

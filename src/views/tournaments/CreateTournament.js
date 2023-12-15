@@ -4,8 +4,10 @@ import { styled } from '@mui/material/styles';
 import { useAlert } from 'react-alert';
 import axios from 'axios';
 import SubCard from 'ui-component/cards/SubCard';
-import { DatePicker } from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import SelectClubs from 'components/SelectClubs';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -17,16 +19,15 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 const CreateTournament = (props) => {
-    const { clubs } = props;
     const alert = useAlert();
     const [values, setValues] = React.useState(
         {
-            category: '',
-            permission: '',
-            tournament: '',
+            CategoryID: '',
+            PermissionID: '',
+            TournamentID: '',
             clubs: '',
             tournamentDescription: '',
-            hostClubID: '',
+            ClubID: '',
             gameDuration: '60',
             roundRobinCourts: '4',
             playOffCourts: '4',
@@ -58,7 +59,7 @@ const CreateTournament = (props) => {
             "EndDate": endDate,
             "StartTime": `${values.startTime.$H}:${values.startTime.$m}`,
             "EndTime": `${values.endTime.$H}:${values.endTime.$m}`,
-            "HostClubID": values.hostClubID,
+            "HostClubID": values.ClubID,
             "GameDuration": values.gameDuration,
             "RoundRobinDays": values.roundRobinDays,
             "PlayOffDays": values.playOffDays,
@@ -90,6 +91,7 @@ const CreateTournament = (props) => {
 
 
     return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Grid item xs={12}>{/*  Crear Torneo */}
             <Item>
                 <SubCard title="Crear Torneo">
@@ -105,21 +107,12 @@ const CreateTournament = (props) => {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <InputLabel id="Club">Club Sede</InputLabel>
-                                <Select
-                                    labelId="{ClubL}"
-                                    id="ClubL"
-                                    name="hostClubID"
-                                    value={values.hostClubID}
-                                    label="Club Sede"
-                                    onChange={handleUpdate}
-                                >
-                                    {clubs.map((row) =>
-                                        <MenuItem value={row.ID}>{row.Description}</MenuItem>
-                                    )}
-                                </Select>
-                            </FormControl>
+                         <SelectClubs 
+                            name='ClubID'
+                            value={values.ClubID}
+                            label="Club Sede"
+                            handleupdate={handleUpdate} 
+                         />
                         </Grid>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
@@ -222,7 +215,7 @@ const CreateTournament = (props) => {
             </Item>
         </Grid>
 
-
+        </LocalizationProvider>
     )
 }
 
