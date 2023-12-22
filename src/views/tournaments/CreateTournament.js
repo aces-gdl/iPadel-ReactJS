@@ -95,7 +95,7 @@ const CreateTournament = (props) => {
         <Grid item xs={12}>{/*  Crear Torneo */}
             <Item>
                 <SubCard title="Crear Torneo">
-                    <Grid container xs={12} spacing={2} >
+                    <Grid container spacing={2} >
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth

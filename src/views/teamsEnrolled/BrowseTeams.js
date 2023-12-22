@@ -55,59 +55,6 @@ const BrowseTeams = () => {
     };
 
 
-    const formatDataValue = (definition, value) => {
-        let result = '';
-        switch (definition.FormatDisplay) {
-            case 'Text':
-                result = value[definition.id];
-                break;
-            /*         case 'Check':
-                       return value[definition.FieldName] === 1 ? (
-                         <IconX name="simple-icon-check" />
-                       ) : (
-                         <IconX name="simple-icon-close" />
-                       );
-               
-              */
-            case 'Date':
-                const myDate = new Date(value[definition.id]);
-                result = myDate.toLocaleDateString();
-                // TODO: dd-MMM-YYYY
-                break;
-            case 'DateTime':
-                const myDateTime = new Date(value[definition.id]);
-                result = `${myDateTime.toLocaleDateString()} ${myDateTime.toLocaleTimeString()}`;
-                break;
-            /*        case 'Image':
-                        return (
-                        
-                            <LoadImageFromURL
-                            id={`at-row-${value.ID || ''}`}
-                            height="100"
-                            picurl={`/rest/api/v4/system/general/image?max_age=5&target=${definition.Target}&id=${value[definition.FieldName]}`}
-                            alt="blob"
-                            />
-                        
-                        );
-              */
-            case 'number':
-                return <Typography>{value[definition.id]}</Typography>;
-            case 'actions':
-                return (
-                    <div className="d-flex justify-content-around align-items-center">
-                        {/*    <IconX name="simple-icon-eye" onClick={() => onViewClick(value)} />{' '} */}
-                        <IconEye onClick={() => { console.log("Open View") }} />
-                        <IconEdit onClick={() => { console.log("Open Edit") }} />
-                    </div>
-                );
-
-            default:
-                result = value[definition.id];
-                break;
-        }
-        return result;
-    };
-
     const RenderCard = (row) => {
 
         return (
@@ -119,7 +66,7 @@ const BrowseTeams = () => {
                         <Box display={'flex'} flexDirection={'column'} paddingTop={2}>
                             <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'}>
 
-                                <LoadImageFromURL id={row.Member1ID} imageid={row.Member1ID } imagename={row.Name1} height='100px' thumbnail />
+                                <LoadImageFromURL id={row.Member1ID} imageid={row.Member1ID} imagename={row.Name1} height='100px' thumbnail />
                                 <Typography variant={'body1'}>{row.Name1}</Typography>
                                 <Typography variant={'body1'}>{row.Ranking1}</Typography>
                             </Box>
@@ -164,10 +111,21 @@ const BrowseTeams = () => {
                             <Button variant={'contained'} onClick={() => loadGroupData(1)}>Buscar Equipos</Button>
                         </Grid>
                     </Grid>
-                    <Grid container spacing={2} paddingY={2}>
-                        {rows.map((row) => RenderCard(row)
-                        )}
-                    </Grid>
+
+                    {rows && rows.length === 0 && (
+                        <Grid item xs={12} paddingTop={2}>
+                            <Box justifyContent={'center'} display={'flex'}>
+                                <Typography variant='h2'>Sin Resultados...</Typography>
+                            </Box>
+                        </Grid>
+
+                    )}
+                    {rows && rows.length > 0 && (
+                        <Grid container spacing={2} paddingY={2}>
+                            {rows.map((row) => RenderCard(row))}
+
+                        </Grid>
+                    )}
                 </MainCard>
             </div>
         </div >

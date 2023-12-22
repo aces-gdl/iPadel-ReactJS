@@ -1,0 +1,12 @@
+/* DRAG AND DROP */
+.drag-and-drop{
+  display: flex;
+  grid-gap: 40px;
+}
+
+.dd-zone{
+  display: flex;
+  flex-direction: column;
+  grid-gap: 16px;
+  height: 100%;
+}

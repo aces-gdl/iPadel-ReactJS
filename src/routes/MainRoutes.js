@@ -23,6 +23,8 @@ const CreateTournament = Loadable(lazy(() => import('views/tournaments/CreateTou
 const TournamentEnrolledTeams = Loadable(lazy(() => import('views/teamsEnrolled/BrowseTeams')))
 const SimulateSubcribers = Loadable(lazy(() => import('views/tournaments/SimulateSubcribers')))
 const CreateGroups = Loadable(lazy(() => import('views/tournaments/CreateGroups')))
+const GamePlanning = Loadable(lazy(() => import('views/gamePlanning')))
+
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -119,6 +121,9 @@ const MainRoutes = {
         {
             path: 'views/tournament/creategroups',
             element: <CreateGroups />
+        },  {
+            path: 'views/gameplanning',
+            element: <GamePlanning />
         },
         
         

@@ -56,9 +56,10 @@ const tournamentAdministration = {
             id: 'Calendario',
             title: 'Calendario Juegos',
             type: 'item',
-            url: '/views/users/browse',
+            url: '/views/gameplanning',
             icon: icons.IconCalendarStats,
             breadcrums: true
+
         }
     ]
 

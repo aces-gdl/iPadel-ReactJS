@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps, */
+
 import * as React from 'react';
 import axios from 'axios';
 import { useEffect } from 'react';
-import { Box, Button, Dialog, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, Divider, Grid, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAlert } from 'react-alert';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -10,13 +12,12 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import LoadImageFromURL from 'components/LoadImageFromURL';
 import './styles.css';
 import { useState } from 'react';
-import { IconCircle, IconPencil } from '@tabler/icons';
+import { IconPencil } from '@tabler/icons';
 import Add from './Add';
 import View from './View';
 import SelectCategories from 'components/SelectCategories';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import Update from './Update';
-import SelectPermissions from 'components/SelectPermissions';
 
 
 export default function BrowserList() {
@@ -76,10 +77,6 @@ export default function BrowserList() {
         setAddOpen(true);
     }
 
-    const openView = (row) => {
-        setCurrenRow(row);
-        setViewOpen(true);
-    }
     const openUpdate = (row) => {
         setCurrenRow(row);
         setUpdateOpen(true);
@@ -114,7 +111,7 @@ export default function BrowserList() {
                     <Box paddingX={2} paddingTop={2} paddingBottom={1} display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
                         <LoadImageFromURL id={row.ID} imageid={row.HasPicture >= 1 ? row.ID : '1'} imagename={row.Name} height='100px' thumbnail />
                         <Typography variant='h4' marginLeft={1.5} component={'h2'}> {row.Name} </Typography>
-                        <Box><Typography variant='h4'>250 Pts</Typography></Box>
+                        <Box><Typography variant='h4'>{`${row.Ranking} Pts`} </Typography></Box>
                     </Box>
                     <Divider variant={'fullWidth'} />
 
@@ -167,7 +164,7 @@ export default function BrowserList() {
                         <TextField
                             size='small'
                             fullWidth
-                            label='Buscar'
+                            label='Nombre(s)'
                             name='SearchString'
                             value={values.SearchString}
                             onChange={handleUpdate}
