@@ -54,7 +54,7 @@ const Add = (props) => {
             'CategoryID': values.CategoryID,
             'Ranking': values.Ranking
         }
-        payload.HasPicture = values.myImage ? 1 : 0;
+        payload.HasPicture = values.myImage ? '1' : '0';
         axios.post('/v1/catalogs/users', payload)
             .then((response) => {
 
