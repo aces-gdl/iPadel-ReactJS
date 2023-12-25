@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react'
-import { Box, Divider, Grid, Paper, Typography } from '@mui/material';
+import { Box, Button, Divider, Grid, Paper, Typography } from '@mui/material';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -170,33 +170,6 @@ const MyGrid = () => {
         )
     }
 
-    const removeFromSchedule = (item) => {
-        if (!item.game) {
-            return
-        }
-
-        const gameToRemove = games.find(i => i.ID === item.game.ID);
-
-        const newGames = games.map((game) => {
-            if (game.ID === gameToRemove.ID) {
-                game.scheduled = false;
-                return game;
-            }
-            return game
-        })
-        setGames(newGames)
-
-        const newTimeSlots = timeSlots.map((item) => {
-            if (item.game && item.game.ID === gameToRemove.ID) {
-                delete item.game
-                return item;
-            }
-            return item;
-        })
-
-        setTimeSlots(newTimeSlots);
-    }
-
     const renderTimeSlots = (court) => {
         return (
             <Grid item xs={3} key={`A=-${court.ID}`}>
@@ -204,12 +177,12 @@ const MyGrid = () => {
                     {GetTimeList(court).map((item, index) => (
                         <Grid item key={index}>
                             <Paper>
-                                <Box display={'flex'} justifyContent={'space-between'} style={{ backgroundColor: '#9fa7cf', padding: ' 3px 3px' }} >
+                                <Box display={'flex'} justifyContent={'space-between'} style={{ backgroundColor: '#9fa7cf',  padding: ' 3px 3px' }} >
                                     <Typography component={'p'} variant={'button'} >{`${item.ID}`}</Typography>
                                     <IconBackspace size={'25'} onClick={() => removeFromSchedule(item)} />
-                                </Box>
-                                <Box padding={1} droppable="true" onDragOver={(evt => draggingOver(evt))} onDrop={(evt => onDrop(evt, item.ID))}>
-                                    <Box textAlign={'center'} minHeight={'80px'} key={item.ID}  >
+                              </Box>
+                                <Box padding={2} droppable="true" onDragOver={(evt => draggingOver(evt))} onDrop={(evt => onDrop(evt, item.ID))}>
+                                    <Box textAlign={'center'} minHeight={'75px'} key={item.ID}  >
                                         {item && item.game && (
                                             renderGames(item.game)
                                         )}
