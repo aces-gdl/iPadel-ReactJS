@@ -1,10 +1,13 @@
-import { Box, FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material'
+import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { IconCircle } from '@tabler/icons'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import { useAlert } from 'react-alert'
+import { useNavigate } from 'react-router'
 
 const SelectClubs = (props) => {
-
+    const navigate = useNavigate();
+    const alert = useAlert();
     const [rows, setRows] = useState([])
 
     const loadComboData = () => {
@@ -17,7 +20,10 @@ const SelectClubs = (props) => {
                 setRows(responses[0].data.data);
             })
             .catch((err) => {
-                console.log("Error : ", err)
+                alert.error('Error leyendo Clubs')
+                if (err.response.status === 401) {
+                    navigate('/pages/login/login3')
+                }
             })
     }
 

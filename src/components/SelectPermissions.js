@@ -1,8 +1,12 @@
 import { FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import { useAlert } from 'react-alert'
+import { useNavigate } from 'react-router'
 
 const SelectPermissions = (props) => {
+    const navigate = useNavigate();
+    const alert = useAlert();
 
     const [rows, setRows] = useState([])
 
@@ -16,7 +20,10 @@ const SelectPermissions = (props) => {
                 setRows(responses[0].data.data);
             })
             .catch((err) => {
-                console.log("Error en PSelect Permisos : ", err)
+                alert.error('Error leyendo Permisos')
+                if (err.response.status === 401) {
+                    navigate('/pages/login/login3')
+                }
             })
     }
 
@@ -37,7 +44,7 @@ const SelectPermissions = (props) => {
                 onChange={props.handleupdate}
             >
                 <MenuItem value='' key='AllSchedules'>Todos</MenuItem>
-                {rows.map((row,index) => (
+                {rows.map((row, index) => (
                     <MenuItem value={row.ID} key={`ss-${index}`}>
                         {row.Description}
                     </MenuItem>
