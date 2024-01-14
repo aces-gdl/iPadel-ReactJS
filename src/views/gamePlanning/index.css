@@ -10,3 +10,9 @@
   grid-gap: 16px;
   height: 100%;
 }
+
+.scoreItems{
+  border: "1px solid grey";
+  display:"flex";
+  align-items:"center";
+}

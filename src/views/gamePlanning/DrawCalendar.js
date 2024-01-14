@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from 'react'
-import { Box, Button, FormControl, Grid, Paper, Typography } from '@mui/material';
+import React, { useRef, useState } from 'react'
+import { Box, Button, Chip, Dialog, FormControl, Grid, Paper, Stack, Typography } from '@mui/material';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -8,46 +8,39 @@ import { useAlert } from 'react-alert';
 import { IconBackspace } from '@tabler/icons';
 import SelectTournaments from 'components/SelectTournament';
 import axios from 'axios';
+import CaptureGameResults from './CaptureGameResults';
+import dayjs from 'dayjs';
 
 
 
 const MyGrid = () => {
+
     const alert = useAlert();
-    const [timeSlots, setTimeSlots] = useState([]);
-    const [games, setGames] = useState([])
-    const [courts, setCourts] = useState([]);
     const [values, setValues] = useState({
         TournamentID: '',
-        FilterDate: null,
     });
+    const [captureResultOpen, setCaptureResultOpen] = useState(false);
+    const [refreshScreen, setRefreshScreen] = useState(false);
 
-
-    const CreateTimeSlots = (courts, times) => {
-        const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-
-        let Slots = [];
-        for (let courtCounter = 1; courtCounter <= courts; courtCounter++) {
-            for (let timeCounter = 1; timeCounter <= times; timeCounter++) {
-                let timeSlot = {
-                    ID: `${alphabet[courtCounter - 1]}${timeCounter}`,
-                    Court: `${alphabet[courtCounter - 1]}`,
-                    Time: `${timeCounter}`,
-                    GameID: ''
-                }
-                Slots.push(timeSlot);
-            }
-        }
-        return Slots;
-    }
+    let gamesRef = useRef([]);
+    let timeSlotsRef = useRef([]);
+    let courtsRef = useRef([]);
+    let numberOfCourts = useRef(1);
+    let currentRow = useRef({});
+    let tournamentDaysRef = useRef([]);
+    let filterDateRef = useRef();
 
     const GetTimeSlots = () => {
         if (values.TournamentID.length === 0) {
             return
         }
-        if (values.FilterDate.length === 0) {
+        if (!filterDateRef.current ) {
             return
         }
-        let FilterDate = values.FilterDate.toJSON().substring(0, 10)
+
+
+        // let FilterDate = values.FilterDate.toJSON().substring(0, 10)
+        let FilterDate = filterDateRef.current.toJSON().substring(0, 10)
         let myURL = `/v1/tournament/gettimeslots?TournamentID=${values.TournamentID}&FilterDate=${FilterDate}`;
         axios.get(myURL)
             .then((response) => {
@@ -58,77 +51,23 @@ const MyGrid = () => {
                         return item.CourtNumber
                     })
                     let myCourts = [...new Set(courtTemp)];
-                    setCourts(myCourts);
-                    setTimeSlots(slots);
+                    courtsRef.current = myCourts;
+                    numberOfCourts.current = myCourts.length;
+                    timeSlotsRef.current = response.data.data
+                    GetGames();
                 } else {
-                    setCourts([]);
-                    setTimeSlots([]);
+                    alert.show("No existen TimeSlots para este dia")
+                    courtsRef.current = [];
+                    timeSlotsRef.current = [];
+                    setRefreshScreen(!refreshScreen);
                 }
 
             })
             .catch((err) => {
                 alert.error('Error buscando Timeslots...' + err.message)
-                setCourts([]);
-                setTimeSlots([]);
+                courtsRef.current = [];
+                timeSlotsRef.current = [];
             })
-    }
-
-    const CreateGames = (GameLimit) => {
-        let Games = [];
-        const Categories = ['Open', 'Primera', 'Segunda', 'Tercera', 'Cuarta', 'Quinta', 'Sexta', 'Femenil'];
-        let categorySelector = 0;
-        for (let gameCounter = 1; gameCounter <= GameLimit; gameCounter++) {
-            let magicNumber = ((gameCounter - 1) * 4)
-            let thisGame = {
-                ID: `${gameCounter}`,
-                CategoryID: `${categorySelector + 1}`,
-                CategoryDescription: Categories[categorySelector],
-                Team1: [
-                    {
-                        ID: `p${gameCounter}j${magicNumber + 1}`,
-                        Name: `Jugador ${magicNumber + 1}`,
-                        Ranking: Math.floor(Math.random() * 1000),
-                    },
-                    {
-                        ID: `p${gameCounter}j${magicNumber + 2}`,
-                        Name: `Jugador ${magicNumber + 2}`,
-                        Ranking: Math.floor(Math.random() * 1000),
-                    },
-                ],
-                Team2: [
-                    {
-                        ID: `p${gameCounter}j${magicNumber + 3}`,
-                        Name: `Jugador ${magicNumber + 3}`,
-                        Ranking: Math.floor(Math.random() * 1000),
-                    },
-                    {
-                        ID: `p${gameCounter}j${magicNumber + 4}`,
-                        Name: `Jugador ${magicNumber + 4}`,
-                        Ranking: Math.floor(Math.random() * 1000),
-                    },
-                ],
-                Score: {
-                    Set1: {
-                        team1: 3,
-                        team2: 6
-                    },
-                    Set2: {
-                        team1: 6,
-                        team2: 4
-                    },
-                    Set3: {
-                        team1: 7,
-                        team2: 6
-                    }
-                }
-            }
-            Games.push(thisGame);
-            categorySelector++;
-            if (categorySelector > Categories.length - 1) {
-                categorySelector = 0;
-            }
-        }
-        return Games;
     }
 
     const GetGames = () => {
@@ -147,6 +86,7 @@ const MyGrid = () => {
                             CategoryID: `${item.CategoryID}`,
                             CategoryDescription: `${item.CategoryDescription}`,
                             CategoryColor: item.CategoryColor,
+                            TournamentTimeSlotsID: item.TournamentTimeSlotsID,
                             Team1: [
                                 {
                                     ID: `${item.Team1Member1ID}`,
@@ -171,54 +111,52 @@ const MyGrid = () => {
                                     Ranking: item.Team2Ranking2,
                                 },
                             ],
-                            Score: {
-                                Set1: {
-                                    team1: 3,
-                                    team2: 6
-                                },
-                                Set2: {
-                                    team1: 6,
-                                    team2: 4
-                                },
-                                Set3: {
-                                    team1: 7,
-                                    team2: 6
-                                }
-                            }
+                            GameResultsID: item.GameResultsID,
+                            Team1Set1: item.Team1Set1,
+                            Team1Set2: item.Team1Set2,
+                            Team1Set3: item.Team1Set3,
+                            Team2Set1: item.Team2Set1,
+                            Team2Set2: item.Team2Set2,
+                            Team2Set3: item.Team2Set3,
                         }
                         return thisGame;
                     })
-                    setGames(games);
+                    gamesRef.current = games;
+
+                    let AssignedGames = gamesRef.current.filter((item) => item.TournamentTimeSlotsID !== '00000000-0000-0000-0000-000000000000')
+                    if (AssignedGames && AssignedGames.length > 0) {
+                        AssignedGames.map((game) => {
+                            AssignGameToTimeSlot(game.ID, game.TournamentTimeSlotsID, true)
+
+                        })
+                    }
+                    setRefreshScreen(!refreshScreen);
+
                 } else {
-                    setGames([]);
+                    gamesRef.current = [];
+                    setRefreshScreen(!refreshScreen);
                 }
 
             })
             .catch((err) => {
                 alert.error('Error buscando Juegos...' + err.message)
-                setCourts([]);
-                setTimeSlots([]);
+                gamesRef.current = [];
             })
     }
 
+
     const getData = () => {
-        GetTimeSlots();
-        GetGames();
+        if (values.TournamentID && values.TournamentID.length > 0 && filterDateRef.current ) {
+            gamesRef.current = [];
+            timeSlotsRef.current = [];
+            courtsRef.current = [];
+            GetTimeSlots();
+        }
     }
 
     const GetTimeList = (court) => {
-        return timeSlots.filter((item) => item.CourtNumber === court)
+        return timeSlotsRef.current.filter((item) => item.CourtNumber === court)
     }
-
-    useEffect(() => {
-        //let slots = CreateTimeSlots(5, 5);
-        // setTimeSlots(slots);
-        //GetTimeSlots();
-
-        // setGames(CreateGames(20));
-    }, [])
-
-
 
     const startDrag = (evt, item) => {
         evt.dataTransfer.setData('itemID', item.ID)
@@ -249,6 +187,61 @@ const MyGrid = () => {
             })
     }
 
+    const AssignGameToTimeSlot = (GameID, TimeSlotID, FromDB) => {
+        const gameAlreadyExists = timeSlotsRef.current.find(item => item.game && item.game.ID === GameID);
+        const TimeSlot = timeSlotsRef.current.find(item => item.ID === TimeSlotID);
+        if (!TimeSlot) {
+            return
+        }
+
+        if (gameAlreadyExists) {
+            alert.info('Operación invalida...')
+            return
+        }
+
+        if (TimeSlot.game && TimeSlot.game.ID.length > 0) {
+            alert.info('Horario ocupado...')
+            return
+        }
+        const sourceGame = gamesRef.current.find((item) => item.ID === GameID);
+
+        if (!FromDB) {
+            PostAssignGameToTimeSlot(values.TournamentID, GameID, TimeSlot.ID)
+
+        }
+
+        const newTimeSlots = timeSlotsRef.current.map((ts) => {
+            if (ts.ID === TimeSlot.ID) {
+                ts.game = sourceGame;
+                return ts;
+            }
+            return ts;
+        })
+
+        timeSlotsRef.current = newTimeSlots;
+        const newGames = gamesRef.current.map((game) => {
+            if (game.ID === GameID) {
+                game.scheduled = true
+                game.TournamentTimeSlotsID = TimeSlot.ID;
+                return game
+            }
+            return game
+        })
+
+        gamesRef.current = newGames;
+        setRefreshScreen(!refreshScreen);
+
+    }
+
+
+    const onDrop = (evt, target) => {
+        const GameID = evt.dataTransfer.getData('itemID');
+        const TimeSlot = timeSlotsRef.current.find(item => item.ID === target);
+
+        AssignGameToTimeSlot(GameID, TimeSlot.ID, false);
+    }
+
+
     const DeleteAssignGameToTimeSlot = (TournamentID, GameID, TimeSlotID) => {
         let payload = {
             "TournamentID": TournamentID,
@@ -256,9 +249,11 @@ const MyGrid = () => {
             "TimeSlotID": TimeSlotID
         }
 
-        axios.delete('/v1/tournament/deleteassigngamestotimeslots', {data: payload})
+        axios.delete('/v1/tournament/deleteassigngamestotimeslots', { data: payload })
             .then((response) => {
                 alert.success("Asignación eliminada exitosamente...");
+                setRefreshScreen(!refreshScreen);
+
             })
             .catch((err) => {
                 alert.error("Error durante la remoción de la asignación" + err.message);
@@ -266,64 +261,25 @@ const MyGrid = () => {
     }
 
 
-
-    const onDrop = (evt, target) => {
-        const source = evt.dataTransfer.getData('itemID');
-        const item = timeSlots.find(item => item.ID === target);
-        const gameAlreadyExists = timeSlots.find(item => item.game && item.game.ID === source);
-
-        if (gameAlreadyExists) {
-            alert.info('Operación invalida...')
-            return
-        }
-
-        if (item.game && item.game.ID.length > 0) {
-            alert.info('Horario ocupado...')
-            return
-        }
-        const sourceGame = games.find((item) => item.ID === source);
-
-        PostAssignGameToTimeSlot(values.TournamentID, source, item.ID)
-
-        const newTimeSlots = timeSlots.map((ts) => {
-            if (ts.ID === target) {
-                ts.game = sourceGame;
-                return ts;
-            }
-            return ts;
-        })
-
-        setTimeSlots(newTimeSlots);
-
-        const newGames = games.map((game) => {
-            if (game.ID === source) {
-                game.scheduled = true
-                return game
-            }
-            return game
-        })
-
-        setGames(newGames);
-    }
-
     const removeFromSchedule = (item) => {
         if (!item.game) {
             return
         }
 
-        const gameToRemove = games.find(i => i.ID === item.game.ID);
+        const gameToRemove = gamesRef.current.find(i => i.ID === item.game.ID);
 
-        const newGames = games.map((game) => {
+        const newGames = gamesRef.current.map((game) => {
             if (game.ID === gameToRemove.ID) {
+                game.TournamentTimeSlotsID = '00000000-0000-0000-0000-000000000000'
                 game.scheduled = false;
                 return game;
             }
             return game
         })
-        setGames(newGames)
+        gamesRef.current = newGames;
 
         let TimeSlotID = item.ID
-        const newTimeSlots = timeSlots.map((item) => {
+        const newTimeSlots = timeSlotsRef.current.map((item) => {
             if (item.game && item.game.ID === gameToRemove.ID) {
                 delete item.game
                 return item;
@@ -331,12 +287,15 @@ const MyGrid = () => {
             return item;
         })
 
-        setTimeSlots(newTimeSlots);
-        DeleteAssignGameToTimeSlot (values.TournamentID,gameToRemove.ID, item.ID )
+        timeSlotsRef.current = newTimeSlots;
+        DeleteAssignGameToTimeSlot(values.TournamentID, gameToRemove.ID, item.ID)
+
     }
 
     const FormatDate = (myDate) => {
-        return `${myDate.$D}-${myDate.$M + 1}-${myDate.$y}`
+        //   return `${myDate.$D}-${myDate.$M + 1}-${myDate.$y}`
+        //   let d = new Date(myDate);
+        return `${myDate.getMonth() + 1}-${myDate.getDate()}`
     }
 
     const renderGames = (row) => {
@@ -350,7 +309,20 @@ const MyGrid = () => {
                         <Typography variant={'subtitle2'} style={{ color: 'black' }} >{row.Team1[0].Name} / {row.Team1[1].Name}</Typography>
                         <Typography variant={'caption'} >vs</Typography>
                         <Typography variant={'subtitle2'} style={{ color: 'steelblue' }}>{row.Team2[0].Name} / {row.Team2[1].Name}</Typography>
-                        <Typography paddingTop={1} variant={'caption'} >6-2, 2-6, 4-6</Typography>
+                        {row.TournamentTimeSlotsID
+                            && row.TournamentTimeSlotsID !== '00000000-0000-0000-0000-000000000000'
+                            && row.GameResultsID
+                            && row.GameResultsID === '00000000-0000-0000-0000-000000000000'
+                            && (
+                                <Typography paddingTop={1} variant={'caption'} onClick={() => CaptureResultOpen(row)}>Resultados</Typography>
+                            )}
+                        {row.TournamentTimeSlotsID
+                            && row.TournamentTimeSlotsID !== '00000000-0000-0000-0000-000000000000'
+                            && row.GameResultsID
+                            && row.GameResultsID !== '00000000-0000-0000-0000-000000000000'
+                            && (
+                                <Typography paddingTop={1} variant={'caption'} >{`${row.Team1Set1}/${row.Team2Set1} , ${row.Team1Set2}/${row.Team2Set2} , ${row.Team1Set3}/${row.Team2Set3}`}</Typography>
+                            )}
 
                     </Box>
                 </Paper>
@@ -360,7 +332,7 @@ const MyGrid = () => {
 
     const renderTimeSlots = (court) => {
         return (
-            <Grid item xs={2} key={`A=-${court}`}>
+            <Grid item xs={12 / numberOfCourts.current} key={`A=-${court}`}>
                 <Grid container direction={'column'} spacing={1} >
                     {GetTimeList(court).map((item, index) => (
                         <Grid item key={index}>
@@ -387,11 +359,38 @@ const MyGrid = () => {
         );
     }
 
+    const GetDateChips = (TournamentID) => {
+        const myURL = `/v1/catalogs/tournament?TournamentID=${TournamentID}`;
+        axios.get(myURL)
+            .then((response) => {
+                const myDates = [];
+                let currentDate = new Date(response.data.data.StartDate)
+                let lastDate = new Date(response.data.data.EndDate)
+                let mycd = currentDate;
+                while (mycd < lastDate) {
+                    myDates.push(mycd)
+                    let ms = mycd.getTime() + 86400000;
+                    mycd = new Date(ms);
+                }
+                tournamentDaysRef.current = myDates
+                setRefreshScreen(!refreshScreen);
+            })
+            .catch((err) => {
+                return (
+                    alert.error("Tournament Days missing")
+                )
+            })
+    }
+
     const handleUpdate = (e) => {
         // setHasChanges(true);
         const { name, value } = e.target;
         if (name && value) {
             setValues({ ...values, [name]: value });
+            if (name === 'TournamentID' && value !== '') {
+                // create date chips
+                GetDateChips(value);
+            }
         }
     };
 
@@ -399,32 +398,47 @@ const MyGrid = () => {
     const handleDateUpdate = (newValue, name) => {
         // setHasChanges(true);
         if (name && newValue) {
-            setValues({ ...values, [name]: newValue });
+          //  setValues({ ...values, [name]: dayjs(newValue) });
+            let d = dayjs(newValue.toDateString());
+            filterDateRef.current = d
+            getData();
         }
     };
+
+
+    const CaptureResultOpen = (row) => {
+        currentRow.current = row;
+        setCaptureResultOpen(true);
+    }
+
+    const handleClose = () => {
+        setCaptureResultOpen(false);
+    }
+    console.log("==========================================")
+    console.log("Games totales : ", gamesRef.current.length)
+    console.log("Games asignados : ", gamesRef.current.filter(games => games.TournamentTimeSlotsID !== '00000000-0000-0000-0000-000000000000').length)
+    console.log("Games sin Asignar : ", gamesRef.current.filter(games => games.TournamentTimeSlotsID === '00000000-0000-0000-0000-000000000000').length)
+    console.log("TimeSlots : ", timeSlotsRef.current.length)
+    console.log("GameResults : ", timeSlotsRef.current.filter(games => games.GameResultsID !== '00000000-0000-0000-0000-000000000000').length)
+    console.log("TournamentsDay : ", tournamentDaysRef.current.length)
+
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box >
                 <Grid container spacing={1} >
-                    <Grid item xs={5} display={'flex'} >
+                    <Grid item xs={4} display={'flex'} >
                         <SelectTournaments
                             name='TournamentID'
                             value={values.TournamentID}
                             label="Torneo"
                             handleupdate={handleUpdate} />
                     </Grid>
-                    <Grid item xs={5} display={'flex'} >
-                        <FormControl fullWidth>
-                            <DatePicker
-                                size={'small'}
-                                label="Fecha"
-                                name="FilterDate"
-                                value={values.FilterDate}
-                                onChange={(newValue) => handleDateUpdate(newValue, "FilterDate")}
-                                format='DD-MM-YYYY'
-                            />
-                        </FormControl>
+                    <Grid item xs={6} display={'flex'} >
+                        <Stack direction="row" spacing={1}>      {
+                            tournamentDaysRef.current.map((mydate) => <Chip color={'primary'} label={FormatDate(mydate)} onClick={() => handleDateUpdate(mydate,'FilterDate')} />)
+                        }
+                        </Stack>
                     </Grid>
                     <Grid item xs={2} display={'flex'} justifyContent={'end'}>
 
@@ -437,15 +451,15 @@ const MyGrid = () => {
                     </Grid>
 
                     <Grid item xs={10}>
-                        <Paper  > <Typography variant='subtitle1' textAlign={'center'} color={'GrayText'}   >{`${values.FilterDate ? FormatDate(values.FilterDate) : 'Sin Resultados...'} `}</Typography></Paper>
+                        <Paper  > <Typography variant='subtitle1' textAlign={'center'} color={'GrayText'}   >{filterDateRef.current ? filterDateRef.current.toJSON().substring(0,10) : 'Sin Resultados...'}</Typography></Paper>
 
                     </Grid>
                     <Grid item xs={2} >
                         <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
                             <Grid container spacing={1}>
-                                {games && games.length > 0 && (
+                                {gamesRef.current && gamesRef.current.length > 0 && (
                                     <>
-                                        {games.filter(game => !game.scheduled).map((item) => renderGames(item))}
+                                        {gamesRef.current.filter(games => games.TournamentTimeSlotsID === '00000000-0000-0000-0000-000000000000').map((item) => renderGames(item))}
                                     </>
                                 )}
                             </Grid>
@@ -453,15 +467,19 @@ const MyGrid = () => {
                     </Grid>
                     <Grid item xs={10} >
                         <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
-                            {courts && courts.length > 0 && (
+                            {courtsRef.current && courtsRef.current.length > 0 && (
                                 <Grid container spacing={1}>
-                                    {courts.map((court) => renderTimeSlots(court))}
+                                    {courtsRef.current.map((court) => renderTimeSlots(court))}
                                 </Grid>
                             )}
                         </PerfectScrollbar>
                     </Grid>
                 </Grid>
             </Box>
+
+            <Dialog open={captureResultOpen} onClose={handleClose} size={'lg'}>
+                <CaptureGameResults game={currentRow.current} handleclose={handleClose} onClose={handleClose} getdata={getData} />
+            </Dialog>
         </LocalizationProvider>
     )
 }

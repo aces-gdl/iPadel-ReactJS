@@ -27,7 +27,7 @@ import { useNavigate } from 'react-router'
                 alert.success("Inscripcion completa")
             })
             .catch((error) => {
-                alert.error("Error durante la inscripcione")
+                alert.error("Error durante la inscripcione", error.message);
             })
     }
 
