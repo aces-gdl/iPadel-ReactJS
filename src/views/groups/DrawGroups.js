@@ -42,6 +42,7 @@ const DrawGroups = () => {
 
     return (
         <div>
+        <p>cambiar grupos</p>
             <div class="table-responsive">
                 <MainCard title="Despliegue de grupos">
                     <Grid container spacing={2}>
