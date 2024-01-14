@@ -156,7 +156,7 @@ export default function BrowserList() {
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box display={'flex'} justifyContent={'center'} paddingY={2}>
-                <Typography variant='h2'>Catalogo de alumnos</Typography>
+                <Typography variant='h2'>Catalogo de deportistas</Typography>
             </Box>
             <Box display={'flex'} justifyContent={'space-between'} paddingBottom={2}>
                 <Grid container spacing={2}>
