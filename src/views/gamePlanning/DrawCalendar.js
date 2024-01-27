@@ -1,23 +1,23 @@
-
+/* eslint-disable no-unused-expressions,  array-callback-return, no-loop-func*/
 import React, { useRef, useState } from 'react'
-import { Box, Button, Chip, Dialog, FormControl, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, Dialog, Grid, InputAdornment, Paper, Stack, TextField, Typography } from '@mui/material';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useAlert } from 'react-alert';
-import { IconBackspace } from '@tabler/icons';
+import { IconBackspace, IconSearch } from '@tabler/icons';
 import SelectTournaments from 'components/SelectTournament';
 import axios from 'axios';
 import CaptureGameResults from './CaptureGameResults';
 import dayjs from 'dayjs';
 
-
+const MIN_LENGTH_FOR_SEARCH_STRING = 3;
 
 const MyGrid = () => {
-
     const alert = useAlert();
     const [values, setValues] = useState({
         TournamentID: '',
+        SearchStr: ''
     });
     const [captureResultOpen, setCaptureResultOpen] = useState(false);
     const [refreshScreen, setRefreshScreen] = useState(false);
@@ -34,7 +34,7 @@ const MyGrid = () => {
         if (values.TournamentID.length === 0) {
             return
         }
-        if (!filterDateRef.current ) {
+        if (!filterDateRef.current) {
             return
         }
 
@@ -76,6 +76,8 @@ const MyGrid = () => {
         }
 
         let myURL = `/v1/tournament/listgames?TournamentID=${values.TournamentID}`;
+       // myURL += `&SearchStr=${values.SearchStr}`
+        
         axios.get(myURL)
             .then((response) => {
                 if (response.data.data) {
@@ -87,6 +89,8 @@ const MyGrid = () => {
                             CategoryDescription: `${item.CategoryDescription}`,
                             CategoryColor: item.CategoryColor,
                             TournamentTimeSlotsID: item.TournamentTimeSlotsID,
+                            GroupNumber: item.GroupNumber,
+                            MatchSearch: false,
                             Team1: [
                                 {
                                     ID: `${item.Team1Member1ID}`,
@@ -145,8 +149,24 @@ const MyGrid = () => {
     }
 
 
+    const filterGames = (e) =>{
+        const { value, name } = e.target;
+        if (value.length < MIN_LENGTH_FOR_SEARCH_STRING) {
+            alert.error(`Un minimo de ${MIN_LENGTH_FOR_SEARCH_STRING} caracteres son necesarios para la busqueda...`)
+        }
+        let myGames = gamesRef.current.map((game) => {
+            game.MatchSearch = (game.Team1[0].Name.toUpperCase().includes(value.toUpperCase()) ) ||
+                                (game.Team1[1].Name.toUpperCase().includes(value.toUpperCase()) ) ||
+                                (game.Team2[0].Name.toUpperCase().includes(value.toUpperCase()) ) ||
+                                (game.Team2[1].Name.toUpperCase().includes(value.toUpperCase()) ) ;
+            return game
+        })
+        gamesRef.current = myGames;
+        setValues({ ...values, [name]: value });
+    }
+
     const getData = () => {
-        if (values.TournamentID && values.TournamentID.length > 0 && filterDateRef.current ) {
+        if (values.TournamentID && values.TournamentID.length > 0 && filterDateRef.current) {
             gamesRef.current = [];
             timeSlotsRef.current = [];
             courtsRef.current = [];
@@ -278,7 +298,6 @@ const MyGrid = () => {
         })
         gamesRef.current = newGames;
 
-        let TimeSlotID = item.ID
         const newTimeSlots = timeSlotsRef.current.map((item) => {
             if (item.game && item.game.ID === gameToRemove.ID) {
                 delete item.game
@@ -298,13 +317,18 @@ const MyGrid = () => {
         return `${myDate.getMonth() + 1}-${myDate.getDate()}`
     }
 
-    const renderGames = (row) => {
+    const renderGames = (row,visibleInGameList) => {
+        if (visibleInGameList && values.SearchStr.length >= MIN_LENGTH_FOR_SEARCH_STRING){
+            if (!row.MatchSearch){
+                return 
+            }
+        }
         return (
             <Grid item textAlign={'center'} xs={12}>
                 <Paper key={`t-${row.ID}`}  >
                     <Box draggable onDragStart={(evt) => startDrag(evt, row)} minHeight={'135px'}  >
                         <Box backgroundColor={row.CategoryColor}>
-                            <Typography variant={'caption'}  >{row.CategoryDescription}</Typography>
+                            <Typography variant={'caption'}  >{row.CategoryDescription}-G{row.GroupNumber}</Typography>
                         </Box>
                         <Typography variant={'subtitle2'} style={{ color: 'black' }} >{row.Team1[0].Name} / {row.Team1[1].Name}</Typography>
                         <Typography variant={'caption'} >vs</Typography>
@@ -344,7 +368,7 @@ const MyGrid = () => {
                                 <Box padding={1} droppable="true" onDragOver={(evt => draggingOver(evt))} onDrop={(evt => onDrop(evt, item.ID))}>
                                     <Box textAlign={'center'} minHeight={'135px'} key={item.ID}  >
                                         {item && item.game && (
-                                            renderGames(item.game)
+                                            renderGames(item.game, false)
                                         )}
                                     </Box>
 
@@ -398,7 +422,7 @@ const MyGrid = () => {
     const handleDateUpdate = (newValue, name) => {
         // setHasChanges(true);
         if (name && newValue) {
-          //  setValues({ ...values, [name]: dayjs(newValue) });
+            //  setValues({ ...values, [name]: dayjs(newValue) });
             let d = dayjs(newValue.toDateString());
             filterDateRef.current = d
             getData();
@@ -436,7 +460,7 @@ const MyGrid = () => {
                     </Grid>
                     <Grid item xs={6} display={'flex'} >
                         <Stack direction="row" spacing={1}>      {
-                            tournamentDaysRef.current.map((mydate) => <Chip color={'primary'} label={FormatDate(mydate)} onClick={() => handleDateUpdate(mydate,'FilterDate')} />)
+                            tournamentDaysRef.current.map((mydate) => <Chip color={'primary'} label={FormatDate(mydate)} onClick={() => handleDateUpdate(mydate, 'FilterDate')} />)
                         }
                         </Stack>
                     </Grid>
@@ -451,15 +475,37 @@ const MyGrid = () => {
                     </Grid>
 
                     <Grid item xs={10}>
-                        <Paper  > <Typography variant='subtitle1' textAlign={'center'} color={'GrayText'}   >{filterDateRef.current ? filterDateRef.current.toJSON().substring(0,10) : 'Sin Resultados...'}</Typography></Paper>
+                        <Paper  > <Typography variant='subtitle1' textAlign={'center'} color={'GrayText'}   >{filterDateRef.current ? filterDateRef.current.toJSON().substring(0, 10) : 'Sin Resultados...'}</Typography></Paper>
 
                     </Grid>
+{/* La busqueda solo deberia de ocultar los juegos que no hagan match con la busqueda */}                    
                     <Grid item xs={2} >
+                        <TextField
+                          size='small'
+                          fullWidth
+                          sx={{paddingBottom:'5px'}}
+                          label='Buscar'
+                          name='SearchStr'
+                     
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconSearch />
+                                    </InputAdornment>
+                                )
+                            }}
+                            onKeyUp={(e) => {
+                                if (e.key === 'Enter') {
+                                    //e.preventDefault();
+                                    filterGames(e)
+                                }
+                            }}
+                        />
                         <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
                             <Grid container spacing={1}>
                                 {gamesRef.current && gamesRef.current.length > 0 && (
                                     <>
-                                        {gamesRef.current.filter(games => games.TournamentTimeSlotsID === '00000000-0000-0000-0000-000000000000').map((item) => renderGames(item))}
+                                        {gamesRef.current.filter(games => games.TournamentTimeSlotsID === '00000000-0000-0000-0000-000000000000').map((item) => renderGames(item,true))}
                                     </>
                                 )}
                             </Grid>

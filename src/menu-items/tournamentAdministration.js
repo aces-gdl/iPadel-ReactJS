@@ -60,6 +60,15 @@ const tournamentAdministration = {
             icon: icons.IconCalendarStats,
             breadcrums: true
 
+        },
+        {
+            id: 'GroupResults',
+            title: 'Resultados por Grupo',
+            type: 'item',
+            url: '/views/roundrobinwinner',
+            icon: icons.IconCalendarStats,
+            breadcrums: true
+
         }
     ]
 
