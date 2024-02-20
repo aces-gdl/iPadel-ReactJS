@@ -76,8 +76,8 @@ const MyGrid = () => {
         }
 
         let myURL = `/v1/tournament/listgames?TournamentID=${values.TournamentID}`;
-       // myURL += `&SearchStr=${values.SearchStr}`
-        
+        // myURL += `&SearchStr=${values.SearchStr}`
+
         axios.get(myURL)
             .then((response) => {
                 if (response.data.data) {
@@ -105,7 +105,7 @@ const MyGrid = () => {
                             ],
                             Team2: [
                                 {
-                                    ID: `${item.Team12Member1ID}`,
+                                    ID: `${item.Team2Member1ID}`,
                                     Name: `${item.Team2Name1}`,
                                     Ranking: item.Team2Ranking1,
                                 },
@@ -149,16 +149,16 @@ const MyGrid = () => {
     }
 
 
-    const filterGames = (e) =>{
+    const filterGames = (e) => {
         const { value, name } = e.target;
         if (value.length < MIN_LENGTH_FOR_SEARCH_STRING) {
             alert.error(`Un minimo de ${MIN_LENGTH_FOR_SEARCH_STRING} caracteres son necesarios para la busqueda...`)
         }
         let myGames = gamesRef.current.map((game) => {
-            game.MatchSearch = (game.Team1[0].Name.toUpperCase().includes(value.toUpperCase()) ) ||
-                                (game.Team1[1].Name.toUpperCase().includes(value.toUpperCase()) ) ||
-                                (game.Team2[0].Name.toUpperCase().includes(value.toUpperCase()) ) ||
-                                (game.Team2[1].Name.toUpperCase().includes(value.toUpperCase()) ) ;
+            game.MatchSearch = (game.Team1[0].Name.toUpperCase().includes(value.toUpperCase())) ||
+                (game.Team1[1].Name.toUpperCase().includes(value.toUpperCase())) ||
+                (game.Team2[0].Name.toUpperCase().includes(value.toUpperCase())) ||
+                (game.Team2[1].Name.toUpperCase().includes(value.toUpperCase()));
             return game
         })
         gamesRef.current = myGames;
@@ -256,8 +256,53 @@ const MyGrid = () => {
 
     const onDrop = (evt, target) => {
         const GameID = evt.dataTransfer.getData('itemID');
+        const GameDropped = gamesRef.current.find((game) => game.ID === GameID);
+        if (!GameDropped) {
+            alert('Error al seleccionar juego');
+            return
+        }
+
         const TimeSlot = timeSlotsRef.current.find(item => item.ID === target);
 
+        let Pareja1Found = false
+        let Pareja2Found = false
+        const TeamPlayingAtTheSameTime = timeSlotsRef.current.find((timeSlot) => {
+            if (timeSlot.StartTime === TimeSlot.StartTime && timeSlot.game) {
+                Pareja1Found =
+                    timeSlot.game.Team1[0].ID === GameDropped.Team1[0].ID ||
+                    timeSlot.game.Team1[1].ID === GameDropped.Team1[0].ID ||
+                    timeSlot.game.Team2[0].ID === GameDropped.Team1[0].ID ||
+                    timeSlot.game.Team2[1].ID === GameDropped.Team1[0].ID;
+
+                Pareja2Found =
+                    timeSlot.game.Team1[0].ID === GameDropped.Team2[0].ID ||
+                    timeSlot.game.Team1[1].ID === GameDropped.Team2[0].ID ||
+                    timeSlot.game.Team2[0].ID === GameDropped.Team2[0].ID ||
+                    timeSlot.game.Team2[1].ID === GameDropped.Team2[0].ID;
+
+                if (Pareja1Found) {
+                    console.log('Equipo 1 encontrado');
+                }
+                if (Pareja2Found) {
+                    console.log('firstPareja 2 Encontrada ....');
+                }
+            }
+
+            return (
+                timeSlot.StartTime === TimeSlot.StartTime
+                && timeSlot.game
+                && (Pareja1Found || Pareja2Found)
+            )
+        })
+        if (TeamPlayingAtTheSameTime) {
+            if (Pareja1Found) {
+                alert.error(`La pareja ${GameDropped.Team1[0].Name} / ${GameDropped.Team1[1].Name} tiene calendarizado un partido a esta hora...`)
+            }
+            if (Pareja2Found) {
+                alert.error(`La pareja ${GameDropped.Team2[0].Name} / ${GameDropped.Team2[1].Name} tiene calendarizado un partido a esta hora...`)
+            }
+            return
+        }
         AssignGameToTimeSlot(GameID, TimeSlot.ID, false);
     }
 
@@ -287,6 +332,11 @@ const MyGrid = () => {
         }
 
         const gameToRemove = gamesRef.current.find(i => i.ID === item.game.ID);
+        if (gameToRemove.GameResultsID !== '00000000-0000-0000-0000-000000000000') {
+            // Partido tiene resultados no deberia de poderse borrar
+            alert.error('Partido ya ha sido jugado no puede quitarse del calendario...');
+            return
+        }
 
         const newGames = gamesRef.current.map((game) => {
             if (game.ID === gameToRemove.ID) {
@@ -317,10 +367,10 @@ const MyGrid = () => {
         return `${myDate.getMonth() + 1}-${myDate.getDate()}`
     }
 
-    const renderGames = (row,visibleInGameList) => {
-        if (visibleInGameList && values.SearchStr.length >= MIN_LENGTH_FOR_SEARCH_STRING){
-            if (!row.MatchSearch){
-                return 
+    const renderGames = (row, visibleInGameList) => {
+        if (visibleInGameList && values.SearchStr.length >= MIN_LENGTH_FOR_SEARCH_STRING) {
+            if (!row.MatchSearch) {
+                return
             }
         }
         return (
@@ -446,88 +496,104 @@ const MyGrid = () => {
     console.log("GameResults : ", timeSlotsRef.current.filter(games => games.GameResultsID !== '00000000-0000-0000-0000-000000000000').length)
     console.log("TournamentsDay : ", tournamentDaysRef.current.length)
 
-
-    return (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box >
-                <Grid container spacing={1} >
-                    <Grid item xs={4} display={'flex'} >
-                        <SelectTournaments
-                            name='TournamentID'
-                            value={values.TournamentID}
-                            label="Torneo"
-                            handleupdate={handleUpdate} />
-                    </Grid>
-                    <Grid item xs={6} display={'flex'} >
-                        <Stack direction="row" spacing={1}>      {
-                            tournamentDaysRef.current.map((mydate) => <Chip color={'primary'} label={FormatDate(mydate)} onClick={() => handleDateUpdate(mydate, 'FilterDate')} />)
-                        }
-                        </Stack>
-                    </Grid>
-                    <Grid item xs={2} display={'flex'} justifyContent={'end'}>
-
-                        <Button variant='contained' color={'error'} onClick={getData}>Buscar</Button>
-                    </Grid>
-
-                    <Grid item xs={2}>
-                        <Paper  > <Typography variant={'subtitle1'} textAlign={'center'} color={'GrayText'} >Juegos no calendarizados</Typography></Paper>
-
-                    </Grid>
-
-                    <Grid item xs={10}>
-                        <Paper  > <Typography variant='subtitle1' textAlign={'center'} color={'GrayText'}   >{filterDateRef.current ? filterDateRef.current.toJSON().substring(0, 10) : 'Sin Resultados...'}</Typography></Paper>
-
-                    </Grid>
-{/* La busqueda solo deberia de ocultar los juegos que no hagan match con la busqueda */}                    
-                    <Grid item xs={2} >
-                        <TextField
-                          size='small'
-                          fullWidth
-                          sx={{paddingBottom:'5px'}}
-                          label='Buscar'
-                          name='SearchStr'
-                     
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconSearch />
-                                    </InputAdornment>
-                                )
-                            }}
-                            onKeyUp={(e) => {
-                                if (e.key === 'Enter') {
-                                    //e.preventDefault();
-                                    filterGames(e)
-                                }
-                            }}
-                        />
-                        <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
-                            <Grid container spacing={1}>
-                                {gamesRef.current && gamesRef.current.length > 0 && (
-                                    <>
-                                        {gamesRef.current.filter(games => games.TournamentTimeSlotsID === '00000000-0000-0000-0000-000000000000').map((item) => renderGames(item,true))}
-                                    </>
-                                )}
-                            </Grid>
-                        </PerfectScrollbar>
-                    </Grid>
-                    <Grid item xs={10} >
-                        <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
-                            {courtsRef.current && courtsRef.current.length > 0 && (
-                                <Grid container spacing={1}>
-                                    {courtsRef.current.map((court) => renderTimeSlots(court))}
-                                </Grid>
-                            )}
-                        </PerfectScrollbar>
-                    </Grid>
+    const drawSelectors = () => {
+        return (
+            <>
+                <Grid item xs={4} display={'flex'} >
+                    <SelectTournaments
+                        name='TournamentID'
+                        value={values.TournamentID}
+                        label="Torneo"
+                        handleupdate={handleUpdate} />
                 </Grid>
-            </Box>
+                <Grid item xs={6} display={'flex'} >
+                    <Stack direction="row" spacing={1}>      {
+                        tournamentDaysRef.current.map((mydate) => <Chip color={'primary'} label={FormatDate(mydate)} onClick={() => handleDateUpdate(mydate, 'FilterDate')} />)
+                    }
+                    </Stack>
+                </Grid>
+                <Grid item xs={2} display={'flex'} justifyContent={'end'}>
 
-            <Dialog open={captureResultOpen} onClose={handleClose} size={'lg'}>
-                <CaptureGameResults game={currentRow.current} handleclose={handleClose} onClose={handleClose} getdata={getData} />
-            </Dialog>
-        </LocalizationProvider>
-    )
+                    <Button variant='contained' color={'error'} onClick={getData}>Buscar</Button>
+                </Grid>
+
+                <Grid item xs={2}>
+                    <Paper  > <Typography variant={'subtitle1'} textAlign={'center'} color={'GrayText'} >Juegos no calendarizados</Typography></Paper>
+
+                </Grid>
+
+                <Grid item xs={10}>
+                    <Paper  > <Typography variant='subtitle1' textAlign={'center'} color={'GrayText'}   >{filterDateRef.current ? filterDateRef.current.toJSON().substring(0, 10) : 'Sin Resultados...'}</Typography></Paper>
+
+                </Grid>
+            </>
+        )
+    }
+
+    const drawGameList = () => {
+        return(
+            <>
+                <Grid item xs={2} >
+                    <TextField
+                        size='small'
+                        fullWidth
+                        sx={{ paddingBottom: '5px' }}
+                        label='Buscar'
+                        name='SearchStr'
+
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconSearch />
+                                </InputAdornment>
+                            )
+                        }}
+                        onKeyUp={(e) => {
+                            if (e.key === 'Enter') {
+                                //e.preventDefault();
+                                filterGames(e)
+                            }
+                        }}
+                    />
+                    <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
+                        <Grid container spacing={1}>
+                            {gamesRef.current && gamesRef.current.length > 0 && (
+                                <>
+                                    {gamesRef.current.filter(games => games.TournamentTimeSlotsID === '00000000-0000-0000-0000-000000000000').map((item) => renderGames(item, true))}
+                                </>
+                            )}
+                        </Grid>
+                    </PerfectScrollbar>
+                </Grid>
+                </>
+            )
+            }
+
+return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box >
+            <Grid container spacing={1} >
+                {drawSelectors()}
+                {drawGameList()}
+                {/* La busqueda solo deberia de ocultar los juegos que no hagan match con la busqueda */}
+
+                <Grid item xs={10} >
+                    <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 155px)', overflowX: 'hidden' }}>
+                        {courtsRef.current && courtsRef.current.length > 0 && (
+                            <Grid container spacing={1}>
+                                {courtsRef.current.map((court) => renderTimeSlots(court))}
+                            </Grid>
+                        )}
+                    </PerfectScrollbar>
+                </Grid>
+            </Grid>
+        </Box>
+
+        <Dialog open={captureResultOpen} onClose={handleClose} size={'lg'}>
+            <CaptureGameResults game={currentRow.current} handleclose={handleClose} onClose={handleClose} getdata={getData} />
+        </Dialog>
+    </LocalizationProvider>
+)
 }
 
 export default MyGrid

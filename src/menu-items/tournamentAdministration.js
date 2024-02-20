@@ -45,14 +45,6 @@ const tournamentAdministration = {
             breadcrums: true
         },
         {
-            id: 'Groups',
-            title: 'Grupos',
-            type: 'item',
-            url: '/views/groups/draw',
-            icon: icons.IconUsers,
-            breadcrums: true
-        },
-        {
             id: 'Calendario',
             title: 'Calendario Juegos',
             type: 'item',
@@ -67,6 +59,24 @@ const tournamentAdministration = {
             type: 'item',
             url: '/views/roundrobinwinner',
             icon: icons.IconCalendarStats,
+            breadcrums: true
+
+        },
+        {
+            id: 'PlayOffsQuarters',
+            title: 'Grafica de Cuartos',
+            type: 'item',
+            url: '/views/playoffs/drawcuartos',
+            icon: icons.IconTournament,
+            breadcrums: true
+
+        },
+        {
+            id: 'PlayOffsRoundOfSixteen',
+            title: 'Grafica de Octavos',
+            type: 'item',
+            url: '/views/playoffs/drawoctavos',
+            icon: icons.IconTournament,
             breadcrums: true
 
         }

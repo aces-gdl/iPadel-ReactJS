@@ -7,6 +7,8 @@ import { useAlert } from 'react-alert';
 import './styles.css';
 import SelectTournaments from 'components/SelectTournament';
 import SelectCategories from 'components/SelectCategories';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const DrawGroupResults = () => {
     const alert = useAlert();
@@ -71,8 +73,8 @@ const DrawGroupResults = () => {
 
     const LoadData = () => {
 
-        if ( (values.TournamentID && values.TournamentID === '') || (values.CategoryID && values.CategoryID === '')){
-            alert.error( 'Torneo y categoria son requeridos');
+        if ((values.TournamentID && values.TournamentID === '') || (values.CategoryID && values.CategoryID === '')) {
+            alert.error('Torneo y categoria son requeridos');
             return
         }
         axios.get(`/v1/tournament/getroundrobinwinner?TournamentID=${values.TournamentID}&CategoryID=${values.CategoryID}`)
@@ -105,7 +107,7 @@ const DrawGroupResults = () => {
             })
     }
 
-    
+
 
     const displayGames = (gameParemeter, gameCounter) => {
         let game = gameParemeter;
@@ -195,11 +197,11 @@ const DrawGroupResults = () => {
         });
 
         for (let i = 0; i < results.length; i++) {
-            let JuegosJugados = group.filter((game) => game.Team1ID === results[i].TeamID || game.Team2ID === results[i].TeamID)
-            let JuegosGanados = JuegosJugados.filter((game) => (game.Team1ID === results[i].TeamID && game.Winner === 1) || (game.Team2ID === results[i].TeamID && game.Winner === 2))
+            let JuegosPlaneados = group.filter((game) => game.Team1ID === results[i].TeamID || game.Team2ID === results[i].TeamID)
+            let JuegosGanados = JuegosPlaneados.filter((game) => (game.Team1ID === results[i].TeamID && game.Winner === 1) || (game.Team2ID === results[i].TeamID && game.Winner === 2))
             results[i].PuntosPorSetsGanados = 0;
             results[i].PuntosGanados = 0;
-            JuegosJugados.map((game) => {
+            JuegosPlaneados.map((game) => {
 
                 if (results[i].TeamID === game.Team1ID) {
                     results[i].PuntosPorSetsGanados = results[i].PuntosPorSetsGanados + game.Team1.PuntosPorSetsGanados
@@ -212,14 +214,15 @@ const DrawGroupResults = () => {
                 }
 
             })
-            results[i].JuegosJugados = JuegosJugados.length;
+            results[i].JuegosJugados = JuegosPlaneados.filter((game) => game.Team1Set1 + game.Team1Set2 + game.Team1Set3 + game.Team2Set1 + game.Team2Set2 + game.Team2Set3).length;
+
             results[i].JuegosGanados = JuegosGanados.length;
         }
 
         //sort results by Juegos Ganados y Puntos Por Set Ganados
         results = results.sort((a, b) => a.JuegosGanados > b.JuegosGanados ? -1 : 1).sort((a, b) => a.PuntosPorSetsGanados > b.PuntosPorSetsGanados ? -1 : 1).sort((a, b) => a.PuntosGanados > b.PuntosGanados ? -1 : 1);
         return (
-            <>
+            <Box id={group[0].GroupName}>
                 <Grid container spacing={2} padding={1}>
                     <Grid item xs={12} textAlign={'center'}>
                         <Typography variant={'h4'} >
@@ -274,15 +277,68 @@ const DrawGroupResults = () => {
                         </Paper>
                     </Grid>
                 </Grid>
-            </>
+            </Box>
         )
+    }
+
+
+
+    function downloadPDF() {
+        const doc = new jsPDF('landscape', 'px','letter', true);
+        groupsRef.current.forEach(async (group, index) => {
+            try {
+                // Ciclar todos los grupos e ir agregando paginas una por cada grupo
+                const captureArea = document.getElementById(group[0].GroupName);
+                const myCanvas = await html2canvas(captureArea);
+                const imgData = myCanvas.toDataURL('img/png');
+                
+                const imgWidth = myCanvas.width * 0.25;
+                const imgHeight = myCanvas.height * 0.25;
+
+                const runningHeight = index * 980;
+
+                if (index > 0 ){
+                    doc.addPage()
+                }
+                doc.setPage(index + 1);
+                doc.addImage(imgData, 'PNG', 20, 40, imgWidth , imgHeight  );
+                if (index + 1 === groupsRef.current.length){
+                    doc.save('CuartosDRAW.pdf')
+                }
+                
+            } catch (error) {
+                console.log('Error convirtiendo a PDF')
+            }
+        })
+        /*    const captureArea = document.querySelector('.AreaToExport')
+    
+            html2canvas(captureArea)
+                .then((canvas) => {
+                    const imgData = canvas.toDataURL('img/png');
+    
+                    const imgWidth = canvas.width * 0.25;
+                    const imgHeight = canvas.height * 0.25;
+    
+                    const doc = new jsPDF('portrait', 'px', [imgWidth+30, imgHeight+30], true);
+    
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = doc.internal.pageSize.getHeight();
+    
+               
+                    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                    const imgX = (pdfWidth - imgWidth * ratio) / 2;
+                    const imgY = 30;
+                    doc.addImage(imgData, 'PNG', 0, 0, imgWidth , imgHeight  );
+                    doc.save('CuartosDRAW.pdf')
+                })
+        */
     }
 
     return (
         <Box>
-            <Typography variant='h2'>
+            <Typography variant='h2' display={'flex'} justifyContent={'space-between'}>
                 Resultados por Grupo
-
+                <Button onClick={downloadPDF} variant={'contained'}> Download </Button>
             </Typography>
             <Box >
                 <Grid container spacing={1} padding={1}>
@@ -308,7 +364,9 @@ const DrawGroupResults = () => {
                     </Grid>
                 </Grid>
             </Box>
-            {groupsRef.current.map((group) => displayGroupResults(group))}
+            <Box className='AreaToExport'>
+                {groupsRef.current.map((group) => displayGroupResults(group))}
+            </Box>
         </Box>
     )
 }
