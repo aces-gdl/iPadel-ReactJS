@@ -10,12 +10,28 @@ const tournamentAdministration = {
     title: 'Torneos',
     type: 'group',
     children: [
+        {       
+            id: 'Crear Torneo',
+            title: 'Crea Torneo',
+            type: 'item',
+            url: '/views/tournament/createtournament',
+            icon: icons.IconTournament,
+            breadcrums: true
+        },
+        {       
+            id: 'tournamentEnrollment',
+            title: 'Inscripción a torneo',
+            type: 'item',
+            url: '/views/tournamentenrollment',
+            icon: icons.IconTournament,
+            breadcrums: true
+        },
         {
-            id: 'subscribed',
-            title: 'Inscripciones',
+            id: 'teammanagement',
+            title: 'Parejas',
             type: 'item',
             url: '/views/tournament/teamsenrolled',
-            icon: icons.IconUserPlus,
+            icon: icons.IconUsers,
             breadcrums: true
         },
         {       
@@ -24,24 +40,6 @@ const tournamentAdministration = {
             type: 'item',
             url: '/views/tournament/simulatesubscribers',
             icon: icons.IconAffiliate,
-            breadcrums: true
-        },
-    
-        {       
-            id: 'Crear Grupos',
-            title: 'Crear Grupos',
-            type: 'item',
-            url: '/views/tournament/creategroups',
-            icon: icons.IconUsers,
-            breadcrums: true
-        },
-        
-        {       
-            id: 'Crear Torneo',
-            title: 'Crea Torneo',
-            type: 'item',
-            url: '/views/tournament/createtournament',
-            icon: icons.IconTournament,
             breadcrums: true
         },
         {
@@ -79,6 +77,14 @@ const tournamentAdministration = {
             icon: icons.IconTournament,
             breadcrums: true
 
+        },
+        {       
+            id: 'Crear Grupos',
+            title: 'Crear Grupos',
+            type: 'item',
+            url: '/views/tournament/creategroups',
+            icon: icons.IconUsers,
+            breadcrums: true
         }
     ]
 

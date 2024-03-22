@@ -8,7 +8,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import SelectClubs from 'components/SelectClubs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-
+import dayjs from 'dayjs';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -20,6 +20,8 @@ const Item = styled(Paper)(({ theme }) => ({
 
 const CreateTournament = (props) => {
     const alert = useAlert();
+    const sixAM = dayjs().set('hour', 6).startOf('hour');
+
     const [values, setValues] = React.useState(
         {
             CategoryID: '',
@@ -32,7 +34,9 @@ const CreateTournament = (props) => {
             roundRobinCourts: '4',
             playOffCourts: '4',
             roundRobinDays: '3',
-            playOffDays: '2'
+            playOffDays: '2',
+            startTime: sixAM,
+            EndTime: sixAM
         }
     )
 
@@ -137,6 +141,8 @@ const CreateTournament = (props) => {
                         <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <TimePicker
+                                    minTime={sixAM}
+                                    defaultValue={sixAM}
                                     label="Hora de inicio"
                                     name="startTime"
                                     value={values.startTime}
@@ -147,6 +153,8 @@ const CreateTournament = (props) => {
                         <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <TimePicker
+                                    defaultValue={sixAM}
+                                    minTime={sixAM}
                                     name="endTime"
                                     value={values.endTime}
                                     onChange={(newValue) => handleDateUpdate(newValue, "endTime")}

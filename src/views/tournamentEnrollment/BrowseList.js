@@ -3,7 +3,7 @@
 import * as React from 'react';
 import axios from 'axios';
 import { useEffect } from 'react';
-import { Box, Button, Dialog, Divider, Grid, Paper, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, Divider, FormControlLabel, Grid, Paper, Radio, RadioGroup, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAlert } from 'react-alert';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -12,13 +12,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import LoadImageFromURL from 'components/LoadImageFromURL';
 import './styles.css';
 import { useState } from 'react';
-import { IconPencil } from '@tabler/icons';
-import Add from './Add';
-import View from './View';
+import { IconPencil, IconAccessible, IconAccessibleOff } from '@tabler/icons';
 import SelectCategories from 'components/SelectCategories';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import Update from './Update';
-
+import SelectTournaments from 'components/SelectTournament';
 
 export default function BrowserList() {
     const navigate = useNavigate();
@@ -29,20 +26,21 @@ export default function BrowserList() {
     const [viewOpen, setViewOpen] = React.useState(false);
     const [addOpen, setAddOpen] = React.useState(false);
     const [updateOpen, setUpdateOpen] = React.useState(false);
+
     const [values, setValues] = useState({
         CategoryID: '',
+        TournamentID: '',
         SearchString: ''
     });
 
     const loadData = (newPage) => {
-        let myURL = '/v1/catalogs/users?page=-1';
-        if (values.CategoryID && values.CategoryID.length > 0) {
-            myURL += `&CategoryID=${values.CategoryID}`
+        if (values.CategoryID === "" && values.TournamentID === '') {
+            alert.error('Torneo y Categoria son requeridos')
+            return
         }
 
-        if (values.PermissionID && values.PermissionID.length > 0) {
-            myURL += `&PermissionID=${values.PermissionID}`
-        }
+
+        let myURL = `/v1/tournament/registeredplayerbytournament?TournamentID=${values.TournamentID}&CategoryID=${values.CategoryID}`;
         if (values.SearchString && values.SearchString.length > 0) {
             myURL += `&SearchString=${values.SearchString}`
         }
@@ -144,9 +142,20 @@ export default function BrowserList() {
                         </Box>
 
                     </Box>
+                    <Box paddingX={2} display={'flex'} alignItems='center'  >
+                        {row.PaymentStatus && (
+                            <Typography variant='subtitle1' component='p' color={'#43a847'}><IconAccessible size={'30px'} /></Typography>
+                        )}
 
-                    <Box display={'flex'} justifyContent={'end'}>
-                        <Button variant={'contained'} onClick={() => openUpdate(row)}><IconPencil size={'20'} /></Button>
+                        {!row.PaymentStatus && (
+                            <Typography variant='subtitle1' component='p' color={'#43a847'}><IconAccessibleOff size={'30px'} /></Typography>
+                        )}
+                    </Box>
+
+                    <Box display={'flex'} justifyContent={'space-between'}>
+
+                        <Button variant={'contained'} onClick={() => openUpdate(row)} color={'warning'}>Cancelar</Button>
+                        <Button variant={'contained'} onClick={() => openUpdate(row)} >Inscribir</Button>
                     </Box>
                 </Paper>
             </Grid>
@@ -155,10 +164,17 @@ export default function BrowserList() {
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box display={'flex'} justifyContent={'center'} paddingY={2}>
-                <Typography variant='h2'>Catalogo de deportistas</Typography>
+                <Typography variant='h2'>Inscripciones a torneo</Typography>
             </Box>
             <Box display={'flex'} justifyContent={'space-between'} paddingBottom={2}>
                 <Grid container spacing={2}>
+
+                    <Grid item xs={12} lg={5} >
+                        <SelectTournaments name='TournamentID' value={values.TournamentID} handleupdate={handleUpdate} />
+                    </Grid>
+                    <Grid item xs={12} lg={5} >
+                        <SelectCategories name='CategoryID' value={values.CategoryID} handleupdate={handleUpdate} />
+                    </Grid>
                     <Grid item xs={12} lg={5} >
                         <TextField
                             size='small'
@@ -170,19 +186,20 @@ export default function BrowserList() {
                         />
                     </Grid>
                     <Grid item xs={12} lg={5} >
-                        <SelectCategories name='CategoryID' value={values.CategoryID} handleupdate={handleUpdate} />
+                        <RadioGroup row>
+                            <FormControlLabel value="1" control={<Radio color={'primary'} />} label='Todos' />
+                            <FormControlLabel value="2" control={<Radio color={'primary'} />} label='Inscritos' />
+                            <FormControlLabel value="3" control={<Radio color={'primary'} />} label='No inscritos' />
+                        </RadioGroup>
                     </Grid>
                     <Grid item xs={12} md={2}>
-                        <Box display={'flex'} justifyContent={'space-between'}>
+                        <Box display={'flex'} justifyContent={'flex-end'}>
                             <Button variant={'contained'} sx={{ marginRight: 2 }} onClick={handleClickOnSearch}>Buscar</Button>
-                            <Button variant={'contained'} sx={{ marginLeft: 2 }} color={'secondary'} onClick={openAdd}>Nuevo</Button>
                         </Box>
                     </Grid>
                 </Grid>
-
             </Box>
             <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 205px)', overflowX: 'hidden' }}>
-
                 <Grid container spacing={2} paddingY={2}>
                     {rows && rows.length > 0 && (
                         rows.map((row) => RenderCard(row))
@@ -194,21 +211,9 @@ export default function BrowserList() {
                                 <Typography variant='h2'>Sin Resultados...</Typography>
                             </Box>
                         </Grid>
-
                     )}
                 </Grid>
             </PerfectScrollbar >
-
-            <Dialog open={addOpen} onClose={handleClose} size={'lg'}>
-                <Add handleClose={handleClose} />
-            </Dialog>
-            <Dialog open={updateOpen} onClose={handleClose} size={'lg'}>
-                <Update handleClose={handleClose} row={currentRow} />
-            </Dialog>
-            <Dialog open={viewOpen} onClose={handleClose} >
-                <View handleClose={handleClose} row={currentRow} />
-            </Dialog>
-
         </LocalizationProvider>
     )
 }

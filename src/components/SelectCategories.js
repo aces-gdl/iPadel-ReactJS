@@ -45,8 +45,8 @@ const SelectCategories = (props) => {
 
                 <MenuItem value='' key='AllCategories'>Todos</MenuItem>
                 {rows.map((row) => {
-                    return <MenuItem value={row.ID} key={row.ID}>
-                        {row.Description}
+                    return <MenuItem value={row.ID} key={row.ID} sx={{backgroundColor: `${row.Color}`, padding:'3px'}}>
+                            {row.Description}
                     </MenuItem>
                 })}
             </Select>

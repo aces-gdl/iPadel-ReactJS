@@ -108,61 +108,75 @@ const MyLoadImageFromURL = (props) => {
     )
   }
 
-  const GetInitials = () => {
-    let initials = '';
-    imagename.split(' ').forEach((word) => { initials += word[0].toString().toUpperCase() })
+  const DisplayNoImage = () => {
+
+
     return (
-      <div id='myInitials' hidden={false} classsName={myClassName} onClick={GetPicture}>{initials}</div>
+      <Box display={'flex'} alignContent={'center'} justifyContent={'center'} >
+        <img
+          id={id}
+          name={name}
+          height={props.height}
+          onChange={handleupdate}
+          className={myClassName}
+          onLoad={loadedImage}
+          onClick={GetPicture}
+          src={notFound}
+          alt="NotFound"
+          onError={({ currentTarget }) => {
+            handelOnImageError(currentTarget)
+          }}
+        />
+      </Box>
     )
   }
-
 
   useEffect(() => {
 
     if (!imageid && !imagename) {
       setFinalImage(notFound)
-    } else if (imageid && imageid.length > 0) {
-      if (imageid === '1'){
-        setFinalImage(notFound)
-
-      }else{
+    } else if (imageid > 0) {
+  
         setFinalImage(myURL)
-
-      }
     } else if (imagename && imagename.length > 0) {
       setFinalImage('');
       setImageFound(false);
-      console.log("poner iniciales")
     }
 
   }, [])
 
-  var myURL = thumbnail ? `/v1/utility/image?ID=${imageid}&thumb=true` : `/v1/utility/image?ID=${imageid}`
+  
+  useEffect(() => {
+
+    if (!imageid && !imagename) {
+      setFinalImage(notFound)
+    } else if (imageid > 0) {
+  
+        setFinalImage(myURL)
+    } else if (imagename && imagename.length > 0) {
+      setFinalImage('');
+      setImageFound(false);
+    }
+
+  }, [imageid])
+
+  var myTime = new Date().getTime();
+  var myURL = thumbnail ? `/v1/utility/image?ID=${imageid}&thumb=true&time='${myTime}'` : `/v1/utility/image?ID=${imageid}&time='${myTime}'`
   var myClassName = thumbnail ? 'circle' : '';
+
+  const loadedImage = () =>{
+    console.log('Imagen Cargada', myURL);
+  }
 
   return (
     <>
-      {imageid && imageid.length > 0 && (
-        <DisplayImage />
-
-      )}
-
-      {showinitials && (
+      {imageid && (
         <>
-
-          <GetInitials />
-          <img
-            hidden
-            id={id}
-            name={name}
-            height={props.height}
-            onChange={handleupdate}
-            className={myClassName}
-            onClick={GetPicture}
-            alt=""
-          />
+        <DisplayImage />
         </>
-
+      )}
+      {!imageid && (
+        <DisplayNoImage />
       )}
       <Dialog open={isCropperOpen} onClose={onClose} fullWidth>
         <DialogContent>
@@ -187,10 +201,5 @@ const MyLoadImageFromURL = (props) => {
 
 const LoadImageFromURL = React.memo(MyLoadImageFromURL);
 
-LoadImageFromURL.propTypes = {
-  id: PropTypes.string.isRequired,
-  handleupdate: PropTypes.func
-
-}
 
 export default LoadImageFromURL;

@@ -6,6 +6,7 @@ import SelectCategories from 'components/SelectCategories'
 import React, { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs';
 import { RowingSharp } from '@mui/icons-material'
+import SelectPermissions from 'components/SelectPermissions'
 
 const Update = (props) => {
   const { handleClose, row } = props
@@ -14,13 +15,14 @@ const Update = (props) => {
     GivenName: props.row.GivenName,
     FamilyName: props.row.FamilyName,
     Email: props.row.Email,
-    ScheduleID: props.row.ScheduleID,
     PermissionID: props.row.PermissionID,
+    Phone: props.row.Phone,
     Observations: props.row.Observations,
-    ContactName: props.row.ContactName,
-    ContactPhone: props.row.ContactPhone,
-    StartDate: dayjs (props.row.StartDate),
-    Birthday: dayjs(props.row.Birthday)
+    MemberSince: dayjs(props.row.MemberSince),
+    Birthday: dayjs(props.row.Birthday),
+    myImage: '',
+    Ranking: props.row.Ranking,
+    HasPicture: props.row.HasPicture,
   });
   const [myImage, setMyImage] = useState('');
 
@@ -41,23 +43,19 @@ const Update = (props) => {
 
   const updateUser = () => {
     const payload = {
-      'ID' : row.ID,
+      'ID': row.ID,
       'Email': values.Email,
       'Name': `${values.GivenName}, ${values.FamilyName}`,
       'FamilyName': values.FamilyName,
       'GivenName': values.GivenName,
-      'StartDate': values.StartDate.toISOString(),
-      'Observations': values.Observations,
-      'ContactName': values.ContactName,
-      'ContactPhone': values.ContactPhone,
-      'ScheduleID': values.ScheduleID,
-      'SeleccionadoID': '',
+      'Phone': values.Phone,
       'Birthday': values.Birthday.toISOString(),
+      'MemberSince': values.MemberSince.toISOString(),
       'PermissionID': values.PermissionID,
       'CategoryID': values.CategoryID,
     }
-    if (values.myImage.size ) {
-      payload.HasPicture = '1';
+    if (values.myImage.size) {
+      payload.HasPicture = 1;
     }
     axios.put('/v1/catalogs/users', payload)
       .then((response) => {
@@ -65,12 +63,12 @@ const Update = (props) => {
         if (values.myImage && values.myImage != '') {
           imagePOST(row.ID)
         }
+        handleClose();
       })
       .catch((err) => {
         console.log('Error al crear usuario')
       })
 
-    //    handleClose();
   }
 
 
@@ -95,13 +93,13 @@ const Update = (props) => {
 
   return (
     <div>
-      <DialogTitle align='center'  ><Typography sx={{ backgroundColor: 'lightgray' }}>Actualizar datos de alumno</Typography></DialogTitle>
+      <DialogTitle align='center'  ><Typography sx={{ backgroundColor: 'lightgray' }}>Datos del atleta</Typography></DialogTitle>
       <DialogContent >
-        <Grid container spacing={2} >
+        <Grid container spacing={2} paddingTop={1} >
           <Grid item xs={12} md={6}>
             <TextField
+              size='small'
               fullWidth
-              style={{ marginTop: '10px' }}
               label='Nombre(s)'
               name='GivenName'
               value={values.GivenName}
@@ -111,7 +109,6 @@ const Update = (props) => {
           <Grid item xs={12} md={6}>
             <TextField
               size='small'
-              style={{ marginTop: '10px' }}
               fullWidth
               label='Apellido(s)'
               name='FamilyName'
@@ -119,64 +116,14 @@ const Update = (props) => {
               onChange={handleUpdate}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              style={{ marginTop: '10px' }}
-              label='Contacto'
-              name='ContactName'
-              value={values.ContactName}
-              onChange={handleUpdate}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              size='small'
-              style={{ marginTop: '10px' }}
-              fullWidth
-              label='Telefono de Contacto'
-              name='ContactPhone'
-              value={values.ContactPhone}
-              onChange={handleUpdate}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <SelectCategories name='CategoryID' value={values.CategoryID} handleupdate={handleUpdate} />
-
-          </Grid>
-        
-          <Grid item xs={12} md={6}>
-
-            <FormControl size='small' fullWidth>
-              <DatePicker
-                label="Fecha de Ingreso"
-                name="StartDate"
-                value={values.StartDate}
-                onChange={(newValue) => handleDateUpdate(newValue, "StartDate")}
-              />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <DatePicker
-                size='small'
-                label="Fecha de Nacimiento"
-                name="BirthDate"
-                value={values.Birthday}
-                onChange={(newValue) => handleDateUpdate(newValue, "Birthday")}
-              />
-            </FormControl>
-          </Grid>
-
 
           <Grid item xs={12} md={6}>
             <TextField
               size='small'
-              style={{ marginTop: '10px' }}
               fullWidth
-              label='Seleccionado'
-              name='SeleccionadoID'
-              value={values.SeleccionadoID}
+              label='Telefono'
+              name='Phone'
+              value={values.Phone}
               onChange={handleUpdate}
             />
           </Grid>
@@ -184,31 +131,48 @@ const Update = (props) => {
             <TextField
               fullWidth
               size='small'
-              style={{ marginTop: '10px' }}
               label='Correo electronico'
               name='Email'
               value={values.Email}
               onChange={handleUpdate}
             />
           </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              size='small'
-              style={{ marginTop: '10px' }}
-              label='Observaciones'
-              name='Observations'
-              value={values.Observations}
-              onChange={handleUpdate}
-            />
+          <Grid item xs={12} md={6}>
+            <SelectCategories name='CategoryID' value={values.CategoryID} handleupdate={handleUpdate} />
           </Grid>
+          <Grid item xs={12} md={6}>
+            <SelectPermissions name='PermissionID' value={values.PermissionID} handleupdate={handleUpdate} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl size={'small'} fullWidth>
+              <DatePicker
+                format="DD/MM/YYYY"
+                label="Miembro Desde"
+                name="MemberSince"
+                value={values.MemberSince}
+                onChange={(newValue) => handleDateUpdate(newValue, "MemberSince")}
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <DatePicker
+                format="DD/MM/YYYY"
+                size='small'
+                label="Fecha de Nacimiento"
+                name="Birthday"
+                value={values.Birthday}
+                onChange={(newValue) => handleDateUpdate(newValue, "Birthday")}
+              />
+            </FormControl>
+          </Grid>
+
           <Grid item xs={12} alignItems={'center'}>
             <LoadImageFromURL
               loadimage
               id="myImage"
               name="myImage"
-              imageid={row.HasPicture >=1 ? row.ID : '1'}
+              imageid={props.row.ID}
               handleupdate={handleUpdate}
               height='200px'
             />

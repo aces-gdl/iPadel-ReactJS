@@ -7,6 +7,8 @@ import SelectPermissions from 'components/SelectPermissions'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useAlert } from 'react-alert'
 import { useNavigate } from 'react-router'
+import dayjs from 'dayjs';
+
 
 const Add = (props) => {
     const navigate = useNavigate();
@@ -20,8 +22,8 @@ const Add = (props) => {
         Phone:'',
         PermissionID: '',
         Observations: '',
-        Birthday: null,
-        MemberSince: null,
+        Birthday: dayjs(),
+        MemberSince: dayjs(),
         myImage: ''
 
     });
@@ -147,6 +149,7 @@ const Add = (props) => {
                     <Grid item xs={12} md={6}>
                         <FormControl size={'small'} fullWidth>
                             <DatePicker
+                                format="DD/MM/YYYY"
                                 label="Fecha de Ingreso"
                                 name="MemberSince"
                                 value={values.MemberSince}
@@ -157,6 +160,7 @@ const Add = (props) => {
                     <Grid item xs={12} md={6}>
                         <FormControl fullWidth>
                             <DatePicker
+                                format="DD/MM/YYYY"
                                 size='small'
                                 label="Fecha de Nacimiento"
                                 name="Birthday"

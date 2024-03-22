@@ -8,13 +8,13 @@ import { useNavigate } from 'react-router'
 const SelectUsers = (props) => {
     const navigate = useNavigate();
     const alert = useAlert();
- 
-    const {filter } = props;
+
+    const { filter } = props;
     const [rows, setRows] = useState([])
 
     const loadComboData = () => {
         let myURL = '/v1/catalogs/users?page=-1'
-        myURL += filter && filter.length > 0 ? `&filter=${filter}`: '';
+        myURL += filter && filter.length > 0 ? `&filter=${filter}` : '';
         let myPromises = [
             axios.get(myURL),
 
@@ -33,23 +33,23 @@ const SelectUsers = (props) => {
 
     useEffect(() => {
         loadComboData();
-      }, [])
+    }, [])
 
     return (
         <FormControl size='small' fullWidth sx={{ marginRight: 2 }}>
-                <InputLabel id="UsersL">Usuario</InputLabel>
-                <Select
-                 labelId="UsersL"
-                 id={props.name}
-                 name={props.name}
-                 value={props.value}
-                 label="Users"
-                 onChange={props.handleupdate}>
+            <InputLabel id="UsersL">Usuario</InputLabel>
+            <Select
+                labelId="UsersL"
+                id={props.name}
+                name={props.name}
+                value={props.value}
+                label="Users"
+                onChange={props.handleupdate}>
 
                 <MenuItem value='' key='All'>Todos</MenuItem>
                 {rows.map((row) => {
                     return <MenuItem value={row.ID} key={row.ID}>
-                           {row.Name}
+                        {row.Name}
                     </MenuItem>
                 })}
             </Select>

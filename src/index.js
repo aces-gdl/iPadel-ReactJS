@@ -21,7 +21,7 @@ const container = document.getElementById('root');
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 const options = {
     // you can also just use 'bottom center'
-    position: positions.MIDDLE,
+    position: positions.BOTTOM_RIGHT,
     timeout: 5000,
     offset: '30px',
     // you can also just use 'scale'

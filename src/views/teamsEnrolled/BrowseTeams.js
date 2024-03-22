@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import axios from 'axios';
-import { useEffect } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
-import { Button, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { IconEdit, IconEye } from '@tabler/icons';
+import { Button, Dialog, Divider, Grid, Paper, Typography } from '@mui/material';
 import SelectTournaments from 'components/SelectTournament';
 import SelectCategories from 'components/SelectCategories';
 import { Box } from '@mui/system';
 import LoadImageFromURL from 'components/LoadImageFromURL';
+import UpdateTeam from './UpdateTeam';
+import CreateTeam from './CreateTeam';
 
 const columns = [
     { id: 'Name', label: 'Equipo', minWidth: 50 },
@@ -21,18 +21,20 @@ const columns = [
 
 const BrowseTeams = () => {
 
-    const [rows, setRows] = React.useState([]);
-    const [values, setValues] = React.useState(
+    const [rows, setRows] = useState([]);
+    const [values, setValues] = useState(
         {
             CategoryID: '',
             TournamentID: ''
         }
     )
-    const [categories, setCategories] = React.useState([]);
-    const [tournaments, setTournaments] = React.useState([]);
+    const [updateTeamIsOpen, setUpdateTeamIsOpen] = useState(false);
+    const [createTeamIsOpen, setCreateTeamIsOpen] = useState(false);
 
-    const loadGroupData = (newPage) => {
-        if (values.TournamentID && values.CategoryID && values.TournamentID.length > 0 && values.CategoryID.length > 0) {
+    let currentRow = useRef({});
+
+    const loadData = (newPage) => {
+        if (values.TournamentID && values.CategoryID) {
 
 
             let URL = `/v1/tournament/enrolledteams?page=-1&CategoryID=${values.CategoryID}&TournamentID=${values.TournamentID}`
@@ -54,6 +56,19 @@ const BrowseTeams = () => {
         }
     };
 
+    const opeUpdateTeam = (row) => {
+        currentRow.current = row;
+        setUpdateTeamIsOpen(true)
+    }
+    const opeCreateTeam = (row) => {
+        setCreateTeamIsOpen(true)
+    }
+
+    useEffect(() => {
+    loadData(1);
+    
+    }, [])
+    
 
     const RenderCard = (row) => {
 
@@ -65,20 +80,19 @@ const BrowseTeams = () => {
                         <Divider />
                         <Box display={'flex'} flexDirection={'column'} paddingTop={2}>
                             <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'}>
-
                                 <LoadImageFromURL id={row.Member1ID} imageid={row.Member1ID} imagename={row.Name1} height='100px' thumbnail />
                                 <Typography variant={'body1'}>{row.Name1}</Typography>
                                 <Typography variant={'body1'}>{row.Ranking1}</Typography>
                             </Box>
-
                             <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'}>
-                                <LoadImageFromURL id={row.ID} imageid={row.HasPicture >= 1 ? row.ID : '1'} imagename={row.Name} height='100px' thumbnail />
-
+                                <LoadImageFromURL id={row.Member2ID} imageid={row.Member2ID} imagename={row.Name2} height='100px' thumbnail />
                                 <Typography variant={'body1'}>{row.Name2}</Typography>
                                 <Typography variant={'body1'}>{row.Ranking2}</Typography>
                             </Box>
                         </Box>
-
+                        <Box display={'flex'} justifyContent={'center'} >
+                            <Button onClick={()=> opeUpdateTeam(row)}>Cambiar pareja</Button>
+                        </Box>
                     </Box>
                 </Paper>
 
@@ -92,7 +106,7 @@ const BrowseTeams = () => {
             <div class="table-responsive">
                 <MainCard title="Despliegue de equipos inscritos">
                     <Grid container spacing={2}>
-                        <Grid item sm={10} md={5}>
+                        <Grid item sm={10} md={4}>
                             <SelectTournaments
                                 name='TournamentID'
                                 value={values.TournamentID}
@@ -100,15 +114,17 @@ const BrowseTeams = () => {
                                 handleupdate={handleUpdate} />
 
                         </Grid>
-                        <Grid item sm={10} md={5} >
+                        <Grid item sm={10} md={4} >
                             <SelectCategories
                                 name='CategoryID'
                                 value={values.CategoryID}
                                 label="Category"
                                 handleupdate={handleUpdate} />
                         </Grid>
-                        <Grid item sm={2}>
-                            <Button variant={'contained'} onClick={() => loadGroupData(1)}>Buscar Equipos</Button>
+                        <Grid item sm={2} md={4} display={'flex'} justifyContent={'space-around'}>
+                        <Button variant={'contained'} onClick={() => loadData(1)} >Buscar parejas</Button>
+                        <Button variant={'contained'} onClick={() => opeCreateTeam()}>Nueva pareja</Button>
+                            
                         </Grid>
                     </Grid>
 
@@ -128,6 +144,12 @@ const BrowseTeams = () => {
                     )}
                 </MainCard>
             </div>
+            <Dialog open={updateTeamIsOpen} onClose={() => setUpdateTeamIsOpen(false)}  fullWidth={true} maxWidth={'md'}>
+                <UpdateTeam row={currentRow.current} category={values.CategoryID} tournament={values.TournamentID} onclose={() => setUpdateTeamIsOpen(false)} reload={loadData}/>
+            </Dialog>            
+            <Dialog open={createTeamIsOpen} onClose={() => setCreateTeamIsOpen(false)} fullWidth={true} maxWidth={'md'}>
+                <CreateTeam row={currentRow.current} category={values.CategoryID} tournament={values.TournamentID} onclose={() => setCreateTeamIsOpen(false)} reload={loadData}/>
+            </Dialog>
         </div >
     )
 }

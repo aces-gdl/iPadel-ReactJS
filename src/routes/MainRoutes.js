@@ -27,6 +27,7 @@ const GamePlanning = Loadable(lazy(() => import('views/gamePlanning')))
 const GroupsResults = Loadable(lazy(() => import('views/groupsResults')))
 const DrawCuartos = Loadable(lazy(() => import('views/playoffs/DrawCuartos')))
 const DrawOctavos = Loadable(lazy(() => import('views/playoffs/DrawOctavos')))
+const TournamentEnrollment = Loadable(lazy(() => import('views/tournamentEnrollment')))
 
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -140,6 +141,9 @@ const MainRoutes = {
         {
             path: 'views/playoffs/drawoctavos',
             element: <DrawOctavos />
+        }, {
+            path: 'views/tournamentenrollment',
+            element: <TournamentEnrollment />
         },
         
         
